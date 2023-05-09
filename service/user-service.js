@@ -8,7 +8,7 @@ const ApiError = require("../excepions/api-error");
 const userModel = require("../models/user-model");
 
 class UserService {
-  async registration(email, password) {
+  async registration(name, email, password) {
     const candidate = await UserModel.findOne({ email });
     if (candidate) {
       throw ApiError.BadRequest(
@@ -17,17 +17,14 @@ class UserService {
     }
 
     const hashPassword = await bcrypt.hash(password, 3);
-    const activationLink = uuid.v4;
+    // const activationLink = uuid.v4;
 
     const user = await UserModel.create({
+      name,
       email,
       password: hashPassword,
-      activationLink,
+      isActivated: true,
     });
-    // await mailService.sendActivationMail(
-    //   email,
-    //   `${process.env.API_URL}/api/activate/${activationLink}`
-    // );
 
     const userDto = new UserDto(user);
     const tokens = tokenService.generateToken({ ...userDto });
@@ -37,14 +34,6 @@ class UserService {
       ...tokens,
       user: userDto,
     };
-  }
-  async activate(activationLink) {
-    const user = await UserModel.findOne({ activationLink });
-    if (!user) {
-      throw ApiError.BadRequest("Некорректная ссылка активации");
-    }
-    user.isActivated = true;
-    await user.save();
   }
 
   async login(email, password) {
