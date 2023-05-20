@@ -41,33 +41,54 @@
 // module.exports = UserModel;
 
 
+// const db = require("../../config/db");
+
+// const UserModel = {
 
 
+//   findOne: function (email,) {
+//     return new Promise((resolve, reject) => {
+//       const query = `SELECT * FROM dashboard_users_partners WHERE email = '${email}'`;
+//       const values = [email];
 
+//       db.query(query, values, (error, results) => {
+//         if (error) {
+//           reject(error);
+//         } else {
+//           resolve(results[0]);
+//         }
+//       });
+//     });
+//   },
 
+// };
+
+// module.exports = UserModel;
 
 const db = require("../../config/db");
 
 const UserModel = {
-
-
-  findOne: function (email) {
+  findOne: function (email, password) {
     return new Promise((resolve, reject) => {
-      console.log('EMAIL IN USER MODEL:', email);
-      const query = `SELECT * FROM dashboard_users_partners WHERE email = '${email}'`;
-      const values = [email];
+      const query = `SELECT * FROM dashboard_users_partners WHERE email = ? AND password = ?`;
+      const values = [email, password];
 
       db.query(query, values, (error, results) => {
         if (error) {
           reject(error);
         } else {
-          resolve(results[0]);
+          if (results.length === 0) {
+            resolve(null);
+          } else {
+            const user = results[0];
+            resolve(user);
+          }
         }
       });
     });
   },
 
+
 };
 
 module.exports = UserModel;
-

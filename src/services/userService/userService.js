@@ -1,19 +1,19 @@
 const UserModel = require("../../models/userModel/userModel");
 const UserDto = require("../../dtos/userDto");
+const db = require('../../config/db')
 
 class UserService {
 
-  async login(email) {
-    const user = await UserModel.findOne(email);
+  async login(email, password) {
+    const user = await UserModel.findOne(email, password);
 
-    const { type, partner, isActive } = user;
+    const { id, type, partner, isActive } = user;
 
     const userDto = new UserDto(user);
+    userDto.id = id;
     userDto.type = type;
     userDto.partner = partner;
     userDto.isActive = isActive;
-
-    console.log('USER IN USER SERVICE:', user);
 
     return {
       user: userDto,
@@ -21,6 +21,25 @@ class UserService {
   }
 
 
-} 
-  
-  module.exports = new UserService();
+  async getActiveStatus(id) {
+    console.log('EMAIL:', id);
+    return new Promise((resolve, reject) => {
+      const query = `SELECT isActive FROM dashboard_users_partners WHERE id = '${id}'`;
+      const values = [id];
+      console.log('VALUES', values);
+
+      db.query(query, values, (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          const isActive = results.length > 0 ? Boolean(results[0].isActive) : false;
+          resolve(isActive);
+        }
+      });
+    });
+  }
+
+
+}
+
+module.exports = new UserService();

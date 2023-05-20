@@ -1,7 +1,15 @@
 const { IsEmail, IsNotEmpty } = require('class-validator');
 
 module.exports = class UserDto {
+  id;
+  email;
+  password;
+  type;
+  partner;
+  isActive;
+
   constructor(model) {
+    this.id = model.id;
     this.email = model.email;
     this.password = model.password;
     this.type = model.type;
