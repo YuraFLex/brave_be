@@ -17,9 +17,7 @@ class UserController {
     async active(req, res, next) {
         try {
             const { id } = req.params;
-            console.log('ID NA GET ZAPROS', id);
             const isActive = await userService.getActiveStatus(id);
-            console.log('IS ACTIVE STATUS', isActive);
 
             return res.json({ isActive });
         } catch (e) {

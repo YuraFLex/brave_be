@@ -7,6 +7,20 @@ class UserService {
   async login(email, password) {
     const user = await UserModel.findOne(email, password);
 
+    if (!user) {
+      const passwordResult = (req.body.password === user.password)
+      if (passwordResult) {
+        res.status(200).json({
+          message: "Login success"
+        })
+      } else {
+        res.status(401).json({
+          message: "Login failed"
+        })
+      }
+    }
+
+
     const { id, type, partner, isActive } = user;
 
     const userDto = new UserDto(user);
