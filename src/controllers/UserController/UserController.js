@@ -14,16 +14,6 @@ class UserController {
         }
     }
 
-    async active(req, res, next) {
-        try {
-            const { id } = req.params;
-            const isActive = await userService.getActiveStatus(id);
-
-            return res.json({ isActive });
-        } catch (e) {
-            next(e);
-        }
-    }
 }
 
 module.exports = new UserController();

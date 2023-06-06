@@ -1,21 +1,3 @@
-// const Sequilize = require('sequelize')
-
-// module.exports = new Sequilize('brave_new', 'makesivan', 'r833ydjx', {
-//     host: '88.214.194.188',
-//     dialect: 'mysql',
-//     operatorsAliases: 0,
-//     pool: {
-//         max: 15,
-//         min: 0,
-//         acquire: 3000,
-//         idle: 10000
-//     }
-// })
-
-
-
-
-
 require('dotenv').config();
 const mysql = require('mysql2');
 

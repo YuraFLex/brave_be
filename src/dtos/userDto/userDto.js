@@ -6,6 +6,7 @@ module.exports = class UserDto {
   password;
   type;
   partner;
+  partner_id;
   isActive;
 
   constructor(model) {
@@ -14,6 +15,7 @@ module.exports = class UserDto {
     this.password = model.password;
     this.type = model.type;
     this.partner = model.partner;
+    this.partner_id = model.partner_id
     this.isActive = model.isActive;
   }
 
