@@ -6,7 +6,7 @@ const connection = mysql.createConnection({
     password: process.env.DB_PASSWORD_MAIN || 'g29Zl5VxT7QcHKsR01G',
     database: process.env.DB_NAME_MAIN || 'brave_new',
     host: process.env.DB_HOST_MAIN || '88.214.194.188',
-    port: process.env.DB_PORT_MAIN || '3020',
+    port: process.env.DB_PORT_MAIN || '3306',
     dialect: 'mysql',
 })
 
