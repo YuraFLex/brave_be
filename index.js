@@ -23,29 +23,15 @@ app.use(
 app.use("/api", router);
 app.use(errorMiddleware);
 
-// const connection = mysql.createConnection({
-//   host: process.env.DB_HOST_MAIN,
-//   user: process.env.DB_USER_MAIN,
-//   password: process.env.DB_PASSWORD_MAIN,
-//   database: process.env.DB_NAME_MAIN,
-//   port: process.env.PORT || 3020,
-//   connectionLimit: 15
+// const connection = db
 
+// connection.connect((err) => {
+//   if (err) {
+//     console.error("Error connecting to database:", err);
+//     return;
+//   }
+//   console.log("Connected to database successfully");
 // });
-
-
-
-// db.authenticate().catch(error => console.error(error))
-
-const connection = db
-
-connection.connect((err) => {
-  if (err) {
-    console.error("Error connecting to database:", err);
-    return;
-  }
-  console.log("Connected to database successfully");
-});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
