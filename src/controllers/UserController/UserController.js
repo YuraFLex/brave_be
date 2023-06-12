@@ -7,8 +7,13 @@ class UserController {
             const { email, password } = req.body;
             const userData = await userService.login(email, password);
 
-            console.log("USER DATA IN USER CONTROLLER:", userData);
-            return res.json(userData);
+            if (userData.success) {
+                // Отправка ответа об успешной авторизации
+                return res.status(200).json({ success: true, message: "Login success", user: userData.user });
+            } else {
+                // Отправка ответа об ошибке авторизации
+                return res.status(401).json({ success: false, message: "Incorrect email or password" });
+            }
         } catch (e) {
             next(e);
         }
@@ -16,5 +21,5 @@ class UserController {
 
 }
 
-module.exports = new UserController();
 
+module.exports = new UserController();
