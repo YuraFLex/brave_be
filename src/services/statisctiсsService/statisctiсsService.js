@@ -3,8 +3,7 @@ const Statistics = require('../../models/Statisitcs/Statisitcs');
 
 class StatisticsService {
     async getSSPStatistics(partnerId, type) {
-        console.log('Айди партнера в сервисе:', partnerId);
-        console.log('Тип партнера в сервисе:', type);
+
         try {
             const result = await Statistics.getStatistics(partnerId, type);
 
