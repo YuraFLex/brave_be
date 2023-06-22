@@ -1,8 +1,15 @@
-
 const db = require("../../config/db");
 const { promisify } = require("util");
 
 const Statistics = {
+    roundValue(value) {
+        if (typeof value === 'number') {
+            const roundedValue = Math.round(value * 100) / 100;
+            return roundedValue.toFixed(3);
+        }
+        return value;
+    },
+
     getStatistics: async function (partner_id, type) {
         let query;
 
@@ -29,6 +36,12 @@ const Statistics = {
         try {
             const queryAsync = promisify(connection.query).bind(connection);
             const results = await queryAsync(query, [partner_id]);
+
+            if (results.length > 0) {
+                const statistics = results[0];
+                statistics.impressions_dsp_sum = this.roundValue(statistics.impressions_dsp_sum);
+                statistics.bids_dsp_sum = this.roundValue(statistics.bids_dsp_sum);
+            }
 
             return results[0];
         } catch (error) {
