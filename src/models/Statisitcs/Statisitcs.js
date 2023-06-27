@@ -41,6 +41,8 @@ const Statistics = {
                 const statistics = results[0];
                 statistics.impressions_dsp_sum = this.roundValue(statistics.impressions_dsp_sum);
                 statistics.bids_dsp_sum = this.roundValue(statistics.bids_dsp_sum);
+                statistics.impressions_ssp_sum = this.roundValue(statistics.impressions_ssp_sum);
+                statistics.bids_ssp_sum = this.roundValue(statistics.bids_ssp_sum);
             }
 
             return results[0];
