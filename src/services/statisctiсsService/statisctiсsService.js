@@ -1,31 +1,26 @@
+// statisticsService.js
 const { sspStatisticsDto, dspStatisticsDto } = require('../../dtos/showStatisctiksDto/showStatisticsDto');
 const Statistics = require('../../models/Statisitcs/Statisitcs');
 
 class StatisticsService {
-    async getSSPStatistics(partnerId, type) {
-
+    async getFilteredStatistics(partnerId, type, period, endDate, endPoint, startDate) {
         try {
-            const result = await Statistics.getStatistics(partnerId, type);
+            const result = await Statistics.getStatistics(partnerId, type, startDate, endDate, endPoint);
 
-            const statisticsDto = new sspStatisticsDto(result);
-            console.log('Данные SSP:', statisticsDto);
-            return statisticsDto;
+            if (type === 'SSP') {
+                const statisticsDto = new sspStatisticsDto(result);
+                console.log('Данные SSP:', statisticsDto);
+                return statisticsDto;
+            } else if (type === 'DSP') {
+                const statisticsDto = new dspStatisticsDto(result);
+                console.log('Данные DSP:', statisticsDto);
+                return statisticsDto;
+            } else {
+                throw new Error('Invalid partner type');
+            }
         } catch (error) {
-            console.error('Ошибка при получении статистики SSP:', error);
-            throw new Error(`Ошибка при получении статистики SSP: ${error.message}`);
-        }
-    }
-
-    async getDSPStatistics(partnerId, type) {
-        try {
-            const result = await Statistics.getStatistics(partnerId, type);
-
-            const statisticsDto = new dspStatisticsDto(result);
-            console.log('Данные DSP:', statisticsDto);
-            return statisticsDto;
-        } catch (error) {
-            console.error('Ошибка при получении статистики DSP:', error);
-            throw new Error(`Ошибка при получении статистики DSP: ${error.message}`);
+            console.error('Ошибка при получении статистики:', error);
+            throw new Error(`Ошибка при получении статистики: ${error.message}`);
         }
     }
 }
