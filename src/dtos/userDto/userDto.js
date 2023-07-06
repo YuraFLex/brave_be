@@ -8,6 +8,9 @@ module.exports = class UserDto {
   partner;
   partner_id;
   isActive;
+  first_name;
+  last_name;
+  legal_name;
 
   constructor(model) {
     this.id = model.id;
@@ -15,8 +18,11 @@ module.exports = class UserDto {
     this.password = model.password;
     this.type = model.type;
     this.partner = model.partner;
-    this.partner_id = model.partner_id
+    this.partner_id = model.partner_id;
     this.isActive = model.isActive;
+    this.first_name = model.first_name;
+    this.last_name = model.last_name;
+    this.legal_name = model.legal_name;
   }
 
   validate() {
