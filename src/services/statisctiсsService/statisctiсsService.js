@@ -5,7 +5,7 @@ const Statistics = require('../../models/Statisitcs/Statisitcs');
 class StatisticsService {
     async getFilteredStatistics(partnerId, type, period, endDate, endPoint, startDate) {
         try {
-            const result = await Statistics.getStatistics(partnerId, type, startDate, endDate, endPoint);
+            const result = await Statistics.getStatistics(partnerId, type, startDate, endDate, endPoint, period);
 
             if (type === 'SSP') {
                 const statisticsDto = new sspStatisticsDto(result);
