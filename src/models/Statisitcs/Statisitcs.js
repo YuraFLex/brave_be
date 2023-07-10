@@ -55,22 +55,49 @@ const Statistics = {
     if (endDate && startDate) {
       query += `
         AND
-          (s.unixtime BETWEEN ? AND ? OR s.unixtime IS NULL)`;
+          (s.unixtime BETWEEN UNIX_TIMESTAMP(?) AND UNIX_TIMESTAMP(?))`;
       queryParams.push(startDate);
       queryParams.push(endDate);
     } else if (period) {
+      const currentDate = new Date();
+      let startOfDay, endOfDay;
+
+      switch (period) {
+        case 'today':
+          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0, 0, 0);
+          endOfDay = currentDate;
+          break;
+        case 'yesterday':
+          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 0, 0, 0);
+          endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59);
+          break;
+        case 'lastweek':
+          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 0, 0, 0);
+          endOfDay = currentDate;
+          break;
+        case 'lastmonth':
+          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
+          endOfDay = currentDate;
+          break;
+        default:
+          throw new Error("Invalid period");
+      }
+
       query += `
         AND
-          (s.unixtime >= ? OR s.unixtime IS NULL)
-        AND
-          (s.unixtime < UNIX_TIMESTAMP(CURRENT_DATE() + INTERVAL 1 DAY) OR s.unixtime IS NULL)`;
-      queryParams.push(period);
+          (s.unixtime BETWEEN UNIX_TIMESTAMP(?) AND UNIX_TIMESTAMP(?))`;
+      queryParams.push(startOfDay);
+      queryParams.push(endOfDay);
     } else {
+      const currentDate = new Date();
+      const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0, 0, 0);
+      const endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 23, 59, 59);
+
       query += `
         AND
-          (s.unixtime >= UNIX_TIMESTAMP(CURRENT_DATE()) OR s.unixtime IS NULL)
-        AND
-          (s.unixtime < UNIX_TIMESTAMP(CURRENT_DATE() + INTERVAL 1 DAY) OR s.unixtime IS NULL)`;
+          (s.unixtime BETWEEN UNIX_TIMESTAMP(?) AND UNIX_TIMESTAMP(?))`;
+      queryParams.push(startOfDay);
+      queryParams.push(endOfDay);
     }
 
     if (endPoint === 'all') {
