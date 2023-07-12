@@ -9,8 +9,6 @@ class EndPointService {
 
             const endPointDtos = result.map(model => new EndPointDto(model));
 
-            console.log('EndPointDtos в сервисе:', endPointDtos);
-
             return endPointDtos;
         } catch (error) {
             console.log('Ошибка при получении списка:', error);

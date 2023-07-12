@@ -9,11 +9,11 @@ class StatisticsService {
 
             if (type === 'SSP') {
                 const statisticsDto = new sspStatisticsDto(result);
-                console.log('Данные SSP:', statisticsDto);
+                console.log(statisticsDto);
                 return statisticsDto;
             } else if (type === 'DSP') {
                 const statisticsDto = new dspStatisticsDto(result);
-                console.log('Данные DSP:', statisticsDto);
+                console.log(statisticsDto);
                 return statisticsDto;
             } else {
                 throw new Error('Invalid partner type');

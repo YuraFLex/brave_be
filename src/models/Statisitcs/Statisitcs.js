@@ -14,8 +14,6 @@ const Statistics = {
     let query;
     let queryParams = [partner_id];
 
-    console.log('период в модели:', period);
-
     if (type === "SSP") {
       query = `
         SELECT
@@ -117,7 +115,6 @@ const Statistics = {
       const queryAsync = promisify(connection.query).bind(connection);
 
       const results = await queryAsync(query, queryParams);
-      console.log('Результат:', results);
 
       if (results.length > 0) {
         const statistics = results[0];
