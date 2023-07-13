@@ -44,6 +44,7 @@ const SummaryReports = {
             SELECT
                 p.id AS partner_id,
                 SUM(s.timeouts_cnt) AS timeouts,
+                SUM(s.timeouts_cnt)/(SUM(requests_cnt)/100) AS time_outs,
                 SUM(s.impressions_cnt) AS impressions,
                 SUM(s.requests_cnt) AS requests,
                 SUM(s.bids_${type}_cnt) AS responses,
@@ -86,6 +87,7 @@ const SummaryReports = {
                 res.spend = this.roundValue(res.spend);
                 res.win_rate = this.roundValue(res.win_rate);
                 res.gross_point = this.roundValue(res.gross_point);
+                res.time_outs = this.roundValue(res.time_outs);
             }
 
             return result[0];

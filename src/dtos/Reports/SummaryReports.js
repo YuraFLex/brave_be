@@ -1,5 +1,6 @@
 module.exports = class SummaryReportsDto {
     timeouts;
+    time_outs;
     impressions;
     requests;
     responses;
@@ -9,6 +10,7 @@ module.exports = class SummaryReportsDto {
 
     constructor(model) {
         this.timeouts = model.timeouts;
+        this.time_outs = model.time_outs;
         this.impressions = model.impressions;
         this.requests = model.requests;
         this.responses = model.responses;
