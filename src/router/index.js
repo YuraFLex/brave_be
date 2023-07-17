@@ -4,6 +4,7 @@ const StatisitcsController = require('../controllers/StatisitcsController/Statis
 const ChangePasswordController = require('../controllers/ChangePasswordController/ChangePasswordController')
 const EndPointController = require('../controllers/EndPointController/EndPointController')
 const SummaryReportsController = require('../controllers/Reports/SummaryReports/SummaryReportsController')
+const DetaliedReportsController = require('../controllers/Reports/DetaliedReports/DetaliedReportsController')
 
 const router = new Router();
 
@@ -12,6 +13,7 @@ router.get("/statistics/:id/:type", StatisitcsController.getStatistics);
 router.put("/changepassword", ChangePasswordController.changePassword);
 router.get("/endpoint/:id/:type", EndPointController.getData);
 router.get("/reports/summary", SummaryReportsController.getSummaryReports)
+router.get("/reports/detalied", DetaliedReportsController.getDetaliedReports)
 
 
 module.exports = router;
