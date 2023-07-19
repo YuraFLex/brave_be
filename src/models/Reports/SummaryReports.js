@@ -11,10 +11,50 @@ const SummaryReports = {
         return value;
     },
 
-    fetchSumReports: async function (partner_id, type, displayBy, endpointId, period, startDate, endDate) {
-        type = type.toLowerCase()
-        let query;
+    generateQuery: function (displayBy, type) {
+        let query = `
+            SELECT
+                p.id AS partner_id,
+                DATE_FORMAT(FROM_UNIXTIME(s.unixtime), `;
 
+        if (displayBy === 'hour') {
+            query += `'%H:00'`;
+        } else if (displayBy === 'day') {
+            query += `'%Y-%m-%d'`;
+        } else if (displayBy === 'month') {
+            query += `'%Y-%m'`;
+        } else if (displayBy === 'year') {
+            query += `'%Y'`;
+        }
+
+        query += `) AS time_interval,
+            SUM(s.timeouts_cnt) AS timeouts,
+            SUM(s.timeouts_cnt)/(SUM(requests_cnt)/100) AS time_outs,
+            SUM(s.impressions_cnt) AS impressions,
+            SUM(s.requests_cnt) AS requests,
+            SUM(s.bids_${type}_cnt) AS responses,
+            SUM(s.impressions_${type}_sum) AS spend,
+            SUM(s.impressions_cnt)/SUM(s.bids_${type}_cnt)*100 AS win_rate,
+            SUM(s.impressions_cnt) AS impressions,
+            SUM(s.impressions_${type}_sum) AS gross_point
+        FROM
+            brave_new.statistic s
+        LEFT JOIN
+            ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
+        LEFT JOIN
+            ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
+        WHERE
+            p.id = ?
+            AND s.unixtime >= ?
+            AND s.unixtime < ?`;
+
+        return query;
+    },
+
+    fetchSumReports: async function (partner_id, type, displayBy, endpointId, period, startDate, endDate) {
+        type = type.toLowerCase();
+        let query;
+        console.log('displayBy в модели:', displayBy);
         let dateStart, dateEnd;
 
         const currentDate = new Date();
@@ -39,41 +79,26 @@ const SummaryReports = {
             dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
         }
 
-
-        query = `
-            SELECT
-                p.id AS partner_id,
-                SUM(s.timeouts_cnt) AS timeouts,
-                SUM(s.timeouts_cnt)/(SUM(requests_cnt)/100) AS time_outs,
-                SUM(s.impressions_cnt) AS impressions,
-                SUM(s.requests_cnt) AS requests,
-                SUM(s.bids_${type}_cnt) AS responses,
-                SUM(s.impressions_${type}_sum) AS spend,
-                SUM(s.impressions_cnt)/SUM(s.bids_${type}_cnt)*100 AS win_rate,
-                SUM(s.impressions_cnt) AS impressions,
-                SUM(s.impressions_${type}_sum) AS gross_point
-            FROM
-                brave_new.statistic s
-            LEFT JOIN
-                ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
-            LEFT JOIN
-                ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
-            WHERE
-                p.id = ?
-                AND s.unixtime >= ?
-                AND s.unixtime < ?`;
+        query = this.generateQuery(displayBy, type);
 
         if (endpointId === 'all') {
             query += `
-            GROUP BY
-                p.id
-            `
+                GROUP BY
+                    time_interval,
+                    p.id
+            `;
         } else if (endpointId) {
             query += `
-            AND
-                s.${type} = ?
-            `
+                AND
+                    s.${type} = ?
+            `;
         }
+
+        query += `
+            GROUP BY
+                time_interval,
+                p.id
+        `;
 
         const connection = db.createConnection();
 
@@ -83,16 +108,51 @@ const SummaryReports = {
             const result = await queryAsync(query, [partner_id, dateStart, dateEnd, endpointId]);
 
             if (result.length > 0) {
-                const res = result[0];
-                res.spend = this.roundValue(res.spend);
-                res.win_rate = this.roundValue(res.win_rate);
-                res.gross_point = this.roundValue(res.gross_point);
-                res.time_outs = this.roundValue(res.time_outs);
-            }
+                const resultData = result.map((row) => ({
+                    timeouts: this.roundValue(row.timeouts),
+                    time_outs: this.roundValue(row.time_outs),
+                    impressions: row.impressions,
+                    requests: row.requests,
+                    responses: row.responses,
+                    spend: this.roundValue(row.spend),
+                    win_rate: this.roundValue(row.win_rate),
+                    time_interval: row.time_interval,
+                }));
 
-            return result[0];
+                console.log('Результат в модели:', resultData);
+
+                const summaryReportsDto = {
+                    timeouts: resultData.map((data) => data.timeouts),
+                    time_outs: resultData.map((data) => data.time_outs),
+                    impressions: resultData.map((data) => data.impressions),
+                    requests: resultData.map((data) => data.requests),
+                    responses: resultData.map((data) => data.responses),
+                    spend: resultData.map((data) => data.spend),
+                    win_rate: resultData.map((data) => data.win_rate),
+                    time_interval: resultData.map((data) => data.time_interval),
+                    labels: ['Spend', 'Impressions', 'Requests'],
+                    isChecked: ['true', 'true', 'true']
+                };
+
+                return summaryReportsDto;
+            } else {
+                console.log('Результат в модели: Пусто');
+                return {
+                    timeouts: [],
+                    time_outs: [],
+                    impressions: [],
+                    requests: [],
+                    responses: [],
+                    spend: [],
+                    win_rate: [],
+                    gross_point: [],
+                    time_interval: [],
+                    labels: [],
+                    isChecked: []
+                };
+            }
         } catch (error) {
-            throw new Error(`Error retrieving summary reports: ${error.message} `);
+            throw new Error(`Error retrieving summary reports: ${error.message}`);
         } finally {
             connection.end();
         }
@@ -100,6 +160,3 @@ const SummaryReports = {
 };
 
 module.exports = SummaryReports;
-
-
-

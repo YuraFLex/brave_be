@@ -10,7 +10,9 @@ class SummaryReportsService {
 
             const reportResult = new SummaryReportsDto(result);
             reportResult.labels = checkedItems.labels;
-            reportResult.isChecked = checkedItems.isChecked
+            reportResult.isChecked = checkedItems.isChecked;
+            reportResult.period = period;
+            reportResult.displayBy = displayBy;
             console.log(reportResult);
 
             return reportResult;
