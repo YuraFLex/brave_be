@@ -1,50 +1,47 @@
+const { log } = require("console");
 const db = require("../../config/db");
 const { promisify } = require("util");
 
 const Statistics = {
   roundValue(value) {
-    if (typeof value === 'number') {
-      const roundedValue = Math.round(value * 100) / 100;
-      return roundedValue.toFixed(2);
+    const parsedValue = parseFloat(value);
+    if (!isNaN(parsedValue)) {
+      const roundedValue = Math.round(parsedValue * 100) / 100;
+      const formattedValue = roundedValue.toFixed(2);
+
+      // Разделяем целую и дробную часть значения точкой
+      const [integerPart, decimalPart] = formattedValue.split('.');
+
+      if (decimalPart === '00') {
+        // Если дробная часть равна "00", возвращаем только целую часть значения
+        return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      } else {
+        // Иначе, добавляем разделитель точки каждые три символа слева от десятичной точки
+        const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return `${integerWithSeparators}.${decimalPart}`;
+      }
     }
     return value;
   },
 
   getStatistics: async function (partner_id, type, startDate, endDate, endPoint, period) {
+    type = type.toLowerCase();
     let query;
     let queryParams = [partner_id];
 
-    if (type === "SSP") {
-      query = `
-        SELECT
-          p.id AS partner_id,
-          SUM(s.bids_ssp_cnt) AS bids_ssp_cnt,
-          SUM(s.impressions_ssp_sum) AS impressions_ssp_sum,
-          SUM(s.bids_ssp_sum) AS bids_ssp_sum,
-          SUM(s.impressions_cnt) AS impressions_cnt
-        FROM
-          brave_new.partners p
-        LEFT JOIN
-          brave_new.ssp_points sp ON p.id = sp.partner_id
-        LEFT JOIN
-          brave_new.statistic s ON sp.id = s.ssp`;
-    } else if (type === "DSP") {
-      query = `
-        SELECT
-          p.id AS partner_id,
-          SUM(s.bids_dsp_cnt) AS bids_dsp_cnt,
-          SUM(s.impressions_dsp_sum) AS impressions_dsp_sum,
-          SUM(s.bids_dsp_sum) AS bids_dsp_sum,
-          SUM(s.impressions_cnt) AS impressions_cnt
-        FROM
-          brave_new.partners p
-        LEFT JOIN
-          brave_new.dsp_points dp ON p.id = dp.partner_id
-        LEFT JOIN
-          brave_new.statistic s ON dp.id = s.dsp`;
-    } else {
-      throw new Error("Invalid partner type");
-    }
+    query = `
+      SELECT
+        p.id AS partner_id,
+        SUM(s.bids_${type}_cnt) AS bids_cnt,
+        SUM(s.impressions_${type}_sum) AS impressions_sum,
+        SUM(s.bids_${type}_sum) AS bids_sum,
+        SUM(s.impressions_cnt) AS impressions_cnt
+      FROM
+        brave_new.partners p
+      LEFT JOIN
+        ${type === 'ssp' ? 'brave_new.ssp_points sp ON p.id = sp.partner_id' : 'brave_new.dsp_points dp ON p.id = dp.partner_id'}
+      LEFT JOIN
+        ${type === 'ssp' ? 'brave_new.statistic s ON sp.id = s.ssp' : 'brave_new.statistic s ON dp.id = s.dsp'}`;
 
     query += `
       WHERE
@@ -116,12 +113,13 @@ const Statistics = {
 
       const results = await queryAsync(query, queryParams);
 
+      console.log('Result:', results);
+
       if (results.length > 0) {
         const statistics = results[0];
-        statistics.impressions_dsp_sum = this.roundValue(statistics.impressions_dsp_sum);
-        statistics.bids_dsp_sum = this.roundValue(statistics.bids_dsp_sum);
-        statistics.impressions_ssp_sum = this.roundValue(statistics.impressions_ssp_sum);
-        statistics.bids_ssp_sum = this.roundValue(statistics.bids_ssp_sum);
+        statistics.bids_cnt = this.roundValue(statistics.bids_cnt);
+        statistics.impressions_sum = this.roundValue(statistics.impressions_sum);
+        statistics.bids_sum = this.roundValue(statistics.bids_sum);
         statistics.impressions_cnt = this.roundValue(statistics.impressions_cnt);
       }
 

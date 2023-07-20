@@ -6,7 +6,19 @@ const SummaryReports = {
         const parsedValue = parseFloat(value);
         if (!isNaN(parsedValue)) {
             const roundedValue = Math.round(parsedValue * 100) / 100;
-            return roundedValue.toFixed(2);
+            const formattedValue = roundedValue.toFixed(2);
+
+            // Разделяем целую и дробную часть значения точкой
+            const [integerPart, decimalPart] = formattedValue.split('.');
+
+            if (decimalPart === '00') {
+                // Если дробная часть равна "00", возвращаем только целую часть значения
+                return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            } else {
+                // Иначе, добавляем разделитель точки каждые три символа слева от десятичной точки
+                const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                return `${integerWithSeparators}.${decimalPart}`;
+            }
         }
         return value;
     },
@@ -111,9 +123,9 @@ const SummaryReports = {
                 const resultData = result.map((row) => ({
                     timeouts: this.roundValue(row.timeouts),
                     time_outs: this.roundValue(row.time_outs),
-                    impressions: row.impressions,
-                    requests: row.requests,
-                    responses: row.responses,
+                    impressions: this.roundValue(row.impressions),
+                    requests: this.roundValue(row.requests),
+                    responses: this.roundValue(row.responses),
                     spend: this.roundValue(row.spend),
                     win_rate: this.roundValue(row.win_rate),
                     time_interval: row.time_interval,
