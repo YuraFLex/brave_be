@@ -14,11 +14,11 @@ const Statistics = {
 
       if (decimalPart === '00') {
         // Если дробная часть равна "00", возвращаем только целую часть значения
-        return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       } else {
         // Иначе, добавляем разделитель точки каждые три символа слева от десятичной точки
-        const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return `${integerWithSeparators}.${decimalPart}`;
+        const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return `${integerWithSeparators},${decimalPart}`;
       }
     }
     return value;
