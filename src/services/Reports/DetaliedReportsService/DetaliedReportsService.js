@@ -16,6 +16,8 @@ class DetaliedReportsService {
             const reportResult = new DetaliedReportsDto(result)
             reportResult.labels = checkedItems.labels;
             reportResult.isChecked = checkedItems.isChecked;
+            reportResult.period = period;
+            reportResult.displayBy = displayBy;
 
 
             return reportResult;
