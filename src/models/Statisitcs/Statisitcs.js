@@ -33,7 +33,7 @@ const Statistics = {
       SELECT
         p.id AS partner_id,
         SUM(s.bids_${type}_cnt) AS bids_cnt,
-        SUM(s.impressions_${type}_sum) AS impressions_sum,
+        SUM(s.impressions_${type}_sum) AS spend,
         SUM(s.bids_${type}_sum) AS bids_sum,
         SUM(s.impressions_cnt) AS impressions_cnt
       FROM
@@ -113,15 +113,17 @@ const Statistics = {
 
       const results = await queryAsync(query, queryParams);
 
-      console.log('Result:', results);
+
 
       if (results.length > 0) {
         const statistics = results[0];
         statistics.bids_cnt = this.roundValue(statistics.bids_cnt);
-        statistics.impressions_sum = this.roundValue(statistics.impressions_sum);
+        statistics.spend = this.roundValue(statistics.spend);
         statistics.bids_sum = this.roundValue(statistics.bids_sum);
         statistics.impressions_cnt = this.roundValue(statistics.impressions_cnt);
       }
+
+      console.log('Result:', results);
 
       return results[0];
     } catch (error) {

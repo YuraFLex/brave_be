@@ -11,7 +11,14 @@ class DetaliedReportsService {
 
         try {
 
-            // const result = await DetaliedReports
+            const result = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, size, traffictype, platform, region, checkedItems)
+
+            const reportResult = new DetaliedReportsDto(result)
+            reportResult.labels = checkedItems.labels;
+            reportResult.isChecked = checkedItems.isChecked;
+
+
+            return reportResult;
 
         } catch (error) {
             console.log(error);
