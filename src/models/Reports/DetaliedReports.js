@@ -150,16 +150,16 @@ const DetaliedReports = {
         type = type.toLowerCase();
 
         let query = `
-        SELECT DISTINCT
-            s.size AS size
+        SELECT DISTINCT 
+	        cusl.size AS size 
         FROM
-            brave_source_statistic.\`07-2023\` AS s
+            brave_new.cache_uniq_sizesdsp_list cusl
         LEFT JOIN 
-            ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
+            brave_new.dsp_points dp ON cusl.dsp_id = dp.id
         LEFT JOIN 
-            ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
+            brave_new.partners p ON dp.partner_id = p.id
         WHERE 
-            p.id = ?`
+            p.id = 313 `
 
         const connection = db.createConnection();
 
