@@ -38,6 +38,8 @@ const DetaliedReports = {
         }
 
         query += `) AS time_interval,
+            IF(s.store != 'isweb', s.bundle_domain, '') AS bundle_domain,
+            IF(s.store = 'isweb', s.bundle_domain, '') AS site_domain,
             s.source_name AS app_name,
             s.store AS app_bundle,
             s.pub_id AS pub_id,
@@ -46,8 +48,7 @@ const DetaliedReports = {
             s.type AS traffic_type,
             CASE
             WHEN s.store = 'isweb' THEN 'WEB'
-            ELSE 'APP'
-        END AS platform,
+            ELSE 'APP' END AS platform,
             SUM(s.impressions_cnt) AS impressions,
             SUM(s.impressions_${type}_sum) AS spend 
         FROM 
@@ -60,6 +61,7 @@ const DetaliedReports = {
             p.id = ?
             AND s.unixtime >= ?
             AND s.unixtime < ?`;
+
 
         return query
     },
@@ -117,6 +119,8 @@ const DetaliedReports = {
                     size: row.size,
                     traffic_type: row.traffic_type,
                     platform: row.platform,
+                    bundle_domain: row.bundle_domain,
+                    site_domain: row.site_domain,
                     time_interval: row.time_interval
                 }))
 
@@ -131,6 +135,8 @@ const DetaliedReports = {
                     traffic_type: resultData.map((data) => data.traffic_type),
                     time_interval: resultData.map((data) => data.time_interval),
                     platform: resultData.map((data) => data.platform),
+                    bundle_domain: resultData.map((data) => data.bundle_domain),
+                    site_domain: resultData.map((data) => data.site_domain),
                     labels: ['Spend', 'Region', 'Impressions'],
                     isChecked: ['true', 'true', 'true']
                 }
