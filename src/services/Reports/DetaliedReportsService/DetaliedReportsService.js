@@ -28,24 +28,22 @@ class DetaliedReportsService {
     }
 
     async getSizesList(partnerId, type) {
-
-        console.log('partner_id:', partnerId);
-        console.log('type:', type);
         try {
-
             const result = await DetaliedReports.fetchSizesList(partnerId, type);
 
-            // DetaliedReportsDto = result.map(model => new DetaliedReportsDto(model))
-            // return DetaliedReportsDto    
+            // Сортировка размеров от меньшего к большему
+            result.sort((a, b) => {
+                const sizeA = parseInt(a.size.replace('x', ''));
+                const sizeB = parseInt(b.size.replace('x', ''));
+                return sizeA - sizeB;
+            });
 
             return result;
-
         } catch (error) {
             console.log('Ошибка при получении списка:', error);
             throw error;
         }
     }
-
 }
 
 module.exports = new DetaliedReportsService()
