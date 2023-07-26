@@ -7,6 +7,7 @@ module.exports = class DetaliedReportsDto {
     region;
     size;
     traffic_type;
+    platform;
     time_interval;
 
     constructor(model) {
@@ -18,6 +19,7 @@ module.exports = class DetaliedReportsDto {
         this.region = model.region;
         this.size = model.size;
         this.traffic_type = model.traffic_type;
+        this.platform = model.platform;
         this.time_interval = model.time_interval;
     }
 }

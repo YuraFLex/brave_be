@@ -44,6 +44,10 @@ const DetaliedReports = {
             s.country AS region,
             s.size AS size,
             s.type AS traffic_type,
+            CASE
+            WHEN s.store = 'isweb' THEN 'WEB'
+            ELSE 'APP'
+        END AS platform,
             SUM(s.impressions_cnt) AS impressions,
             SUM(s.impressions_${type}_sum) AS spend 
         FROM 
@@ -112,6 +116,7 @@ const DetaliedReports = {
                     region: row.region,
                     size: row.size,
                     traffic_type: row.traffic_type,
+                    platform: row.platform,
                     time_interval: row.time_interval
                 }))
 
@@ -125,14 +130,15 @@ const DetaliedReports = {
                     size: resultData.map((data) => data.size),
                     traffic_type: resultData.map((data) => data.traffic_type),
                     time_interval: resultData.map((data) => data.time_interval),
+                    platform: resultData.map((data) => data.platform),
                     labels: ['Spend', 'Region', 'Impressions'],
                     isChecked: ['true', 'true', 'true']
                 }
-                console.log('Результат в модели:', detaliedReportsDto);
+                console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
                 return detaliedReportsDto;
             }
 
-            console.log('Результат в модели:', result);
+            console.log('Результат в модели result:', result);
             return result[0];
 
         } catch (error) {
