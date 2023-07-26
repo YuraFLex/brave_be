@@ -31,7 +31,7 @@ class DetaliedReportsService {
         try {
             const result = await DetaliedReports.fetchSizesList(partnerId, type);
 
-            // Сортировка размеров от меньшего к большему
+
             result.sort((a, b) => {
                 const sizeA = parseInt(a.size.replace('x', ''));
                 const sizeB = parseInt(b.size.replace('x', ''));
