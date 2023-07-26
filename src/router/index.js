@@ -16,6 +16,7 @@ router.get("/endpoint/:id/:type", EndPointController.getData);
 router.get("/reports/summary", SummaryReportsController.getSummaryReports);
 router.get("/reports/detalied", DetaliedReportsController.getDetaliedReports);
 router.post("/reports/download", DownloadCsvController.getCsvFile);
+router.get("/reports/detalied/:id/:type", DetaliedReportsController.getSizesList);
 
 
 module.exports = router;

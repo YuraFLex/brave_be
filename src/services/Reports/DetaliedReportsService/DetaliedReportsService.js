@@ -26,6 +26,26 @@ class DetaliedReportsService {
             console.log(error);
         }
     }
+
+    async getSizesList(partnerId, type) {
+
+        console.log('partner_id:', partnerId);
+        console.log('type:', type);
+        try {
+
+            const result = await DetaliedReports.fetchSizesList(partnerId, type);
+
+            // DetaliedReportsDto = result.map(model => new DetaliedReportsDto(model))
+            // return DetaliedReportsDto    
+
+            return result;
+
+        } catch (error) {
+            console.log('Ошибка при получении списка:', error);
+            throw error;
+        }
+    }
+
 }
 
 module.exports = new DetaliedReportsService()

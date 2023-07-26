@@ -30,9 +30,9 @@ const DetaliedReports = {
         if (displayBy === 'hour') {
             query += `'%H:00'`;
         } else if (displayBy === 'day') {
-            query += `'%Y-%m-%d'`;
+            query += `'%Y/%m/%d'`;
         } else if (displayBy === 'month') {
-            query += `'%Y-%m'`;
+            query += `'%Y/%m'`;
         } else if (displayBy === 'year') {
             query += `'%Y'`;
         }
@@ -41,8 +41,6 @@ const DetaliedReports = {
             s.source_name AS app_name,
             s.store AS app_bundle,
             s.pub_id AS pub_id,
-            s.dsp_source_id AS dspSource_id,
-            s.source_id AS source_id,
             s.country AS region,
             s.size AS size,
             s.type AS traffic_type,
@@ -111,15 +109,11 @@ const DetaliedReports = {
                     app_name: row.app_name,
                     app_bundle: row.app_bundle,
                     pub_id: row.pub_id,
-                    dspSource_id: row.dspSource_id,
-                    source_id: row.source_id,
                     region: row.region,
                     size: row.size,
                     traffic_type: row.traffic_type,
                     time_interval: row.time_interval
                 }))
-
-
 
                 const detaliedReportsDto = {
                     spend: resultData.map((data) => data.spend),
@@ -127,8 +121,6 @@ const DetaliedReports = {
                     app_name: resultData.map((data) => data.app_name),
                     app_bundle: resultData.map((data) => data.app_bundle),
                     pub_id: resultData.map((data) => data.pub_id),
-                    dspSource_id: resultData.map((data) => data.dspSource),
-                    source_id: resultData.map((data) => data.source_id),
                     region: resultData.map((data) => data.region),
                     size: resultData.map((data) => data.size),
                     traffic_type: resultData.map((data) => data.traffic_type),
@@ -148,7 +140,42 @@ const DetaliedReports = {
         } finally {
             connection.end();
         }
+    },
+
+    fetchSizesList: async function (partnerId, type) {
+
+        console.log('partner_id в модели:', partnerId);
+        console.log('type в модели:', type);
+
+        type = type.toLowerCase();
+
+        let query = `
+        SELECT DISTINCT
+            s.size AS size
+        FROM
+            brave_source_statistic.\`07-2023\` AS s
+        LEFT JOIN 
+            ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
+        LEFT JOIN 
+            ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
+        WHERE 
+            p.id = ?`
+
+        const connection = db.createConnection();
+
+        try {
+            const queryAsync = promisify(connection.query).bind(connection);
+            const result = await queryAsync(query, [partnerId]);
+
+            return result;
+
+        } catch (error) {
+            console.log(error);
+        } finally {
+            connection.end()
+        }
     }
+
 };
 
 module.exports = DetaliedReports;

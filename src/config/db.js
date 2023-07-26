@@ -8,7 +8,6 @@ function createConnection() {
         database: process.env.DB_NAME_MAIN || 'brave_new',
         host: process.env.DB_HOST_MAIN || '88.214.194.188',
         port: process.env.DB_PORT_MAIN || '3306',
-        dialect: 'mysql',
     });
 
     return connection;

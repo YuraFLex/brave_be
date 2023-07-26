@@ -32,9 +32,9 @@ const SummaryReports = {
         if (displayBy === 'hour') {
             query += `'%H:00'`;
         } else if (displayBy === 'day') {
-            query += `'%Y-%m-%d'`;
+            query += `'%Y/%m/%d'`;
         } else if (displayBy === 'month') {
-            query += `'%Y-%m'`;
+            query += `'%Y/%m'`;
         } else if (displayBy === 'year') {
             query += `'%Y'`;
         }
