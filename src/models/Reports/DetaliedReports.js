@@ -52,7 +52,7 @@ const DetaliedReports = {
             SUM(s.impressions_cnt) AS impressions,
             SUM(s.impressions_${type}_sum) AS spend 
         FROM 
-            brave_source_statistic.\`07-2023\` AS s
+            brave_source_statistic.\`08-2023\` AS s
         LEFT JOIN 
             ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
         LEFT JOIN 
@@ -108,6 +108,7 @@ const DetaliedReports = {
 
             const result = await queryAsync(query, [partner_id, dateStart, dateEnd]);
 
+            console.log('result:', result);
             if (result.length > 0) {
                 const resultData = result.map((row) => ({
                     spend: this.roundValue(row.spend),
@@ -155,9 +156,6 @@ const DetaliedReports = {
     },
 
     fetchSizesList: async function (partnerId, type) {
-
-        console.log('partner_id в модели:', partnerId);
-        console.log('type в модели:', type);
 
         type = type.toLowerCase();
 
