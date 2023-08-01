@@ -32,10 +32,11 @@ const Statistics = {
     query = `
       SELECT
         p.id AS partner_id,
-        SUM(s.bids_${type}_cnt) AS bids_cnt,
         SUM(s.impressions_${type}_sum) AS spend,
-        SUM(s.bids_${type}_sum) AS bids_sum,
-        SUM(s.impressions_cnt) AS impressions_cnt
+        SUM(s.impressions_cnt) AS impressions_cnt,
+        SUM(s.bids_${type}_cnt) AS responses,
+        SUM(s.timeouts_cnt)/(SUM(requests_cnt)/100) AS time_outs,
+        SUM(s.impressions_cnt)/SUM(s.bids_${type}_cnt)*100 AS win_rate
       FROM
         brave_new.partners p
       LEFT JOIN
@@ -102,7 +103,7 @@ const Statistics = {
     } else if (endPoint) {
       query += `
         AND
-          (s.${type.toLowerCase()} = ? OR s.${type.toLowerCase()} IS NULL)`;
+          (s.${type} = ? OR s.${type} IS NULL)`;
       queryParams.push(endPoint);
     }
 
@@ -117,10 +118,11 @@ const Statistics = {
 
       if (results.length > 0) {
         const statistics = results[0];
-        statistics.bids_cnt = this.roundValue(statistics.bids_cnt);
         statistics.spend = this.roundValue(statistics.spend);
-        statistics.bids_sum = this.roundValue(statistics.bids_sum);
         statistics.impressions_cnt = this.roundValue(statistics.impressions_cnt);
+        statistics.responses = this.roundValue(statistics.responses);
+        statistics.time_outs = this.roundValue(statistics.time_outs);
+        statistics.win_rate = this.roundValue(statistics.win_rate);
       }
 
       console.log('Result:', results);
