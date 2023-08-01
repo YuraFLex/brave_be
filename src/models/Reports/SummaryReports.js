@@ -63,10 +63,9 @@ const SummaryReports = {
         return query;
     },
 
-    fetchSumReports: async function (partner_id, type, displayBy, endpointId, period, startDate, endDate) {
+    fetchSumReports: async function (partner_id, type, displayBy, endPointUrl, period, startDate, endDate) {
         type = type.toLowerCase();
         let query;
-        console.log('displayBy в модели:', displayBy);
         let dateStart, dateEnd;
 
         const currentDate = new Date();
@@ -86,6 +85,10 @@ const SummaryReports = {
             const lastMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
             dateStart = Math.floor(lastMonthStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
+        } else if (period === 'thismonth') {
+            const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+            dateStart = Math.floor(thisMonthStart.getTime() / 1000);
+            dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else {
             dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
             dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
@@ -93,31 +96,23 @@ const SummaryReports = {
 
         query = this.generateQuery(displayBy, type);
 
-        if (endpointId === 'all') {
+        if (endPointUrl === 'all') {
             query += `
                 GROUP BY
                     time_interval,
-                    p.id
-            `;
-        } else if (endpointId) {
+                    p.id`;
+        } else if (endPointUrl) {
             query += `
                 AND
-                    s.${type} = ?
-            `;
+                s.${type} = ?`;
         }
-
-        query += `
-            GROUP BY
-                time_interval,
-                p.id
-        `;
 
         const connection = db.createConnection();
 
         try {
             const queryAsync = promisify(connection.query).bind(connection);
 
-            const result = await queryAsync(query, [partner_id, dateStart, dateEnd, endpointId]);
+            const result = await queryAsync(query, [partner_id, dateStart, dateEnd, endPointUrl]);
 
             if (result.length > 0) {
                 const resultData = result.map((row) => ({
@@ -169,6 +164,10 @@ const SummaryReports = {
             connection.end();
         }
     },
+
 };
 
 module.exports = SummaryReports;
+
+
+
