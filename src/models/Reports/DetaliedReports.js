@@ -118,6 +118,11 @@ const DetaliedReports = {
             query += ` AND s.type = ?`;
             params.push(trafficType);
         }
+
+        query += `
+            GROUP BY
+                time_interval,
+                dp.id`;
         const connection = db.createConnection();
 
         try {
