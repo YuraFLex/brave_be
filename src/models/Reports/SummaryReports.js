@@ -8,16 +8,14 @@ const SummaryReports = {
             const roundedValue = Math.round(parsedValue * 100) / 100;
             const formattedValue = roundedValue.toFixed(2);
 
-            // Разделяем целую и дробную часть значения точкой
             const [integerPart, decimalPart] = formattedValue.split('.');
 
             if (decimalPart === '00') {
-                // Если дробная часть равна "00", возвращаем только целую часть значения
                 return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             } else {
-                // Иначе, добавляем разделитель точки каждые три символа слева от десятичной точки
+
                 const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                return `${integerWithSeparators},${decimalPart}`;
+                return `${integerWithSeparators}.${decimalPart}`;
             }
         }
         return value;
@@ -78,13 +76,17 @@ const SummaryReports = {
             dateStart = Math.floor(yesterday.getTime() / 1000);
             dateEnd = Math.floor(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59).getTime() / 1000);
         } else if (period === 'lastweek') {
-            const lastWeekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 0, 0, 0);
+            const lastWeekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 23, 59, 59);
             dateStart = Math.floor(lastWeekStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else if (period === 'lastmonth') {
-            const lastMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
+            const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+            const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
+            dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
+
+            const lastMonthStart = new Date(lastMonthEnd);
+            lastMonthStart.setDate(1);
             dateStart = Math.floor(lastMonthStart.getTime() / 1000);
-            dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else if (period === 'thismonth') {
             const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
             dateStart = Math.floor(thisMonthStart.getTime() / 1000);

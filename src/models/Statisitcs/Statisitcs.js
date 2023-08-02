@@ -9,16 +9,14 @@ const Statistics = {
       const roundedValue = Math.round(parsedValue * 100) / 100;
       const formattedValue = roundedValue.toFixed(2);
 
-      // Разделяем целую и дробную часть значения точкой
       const [integerPart, decimalPart] = formattedValue.split('.');
 
       if (decimalPart === '00') {
-        // Если дробная часть равна "00", возвращаем только целую часть значения
         return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       } else {
-        // Иначе, добавляем разделитель точки каждые три символа слева от десятичной точки
+
         const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return `${integerWithSeparators},${decimalPart}`;
+        return `${integerWithSeparators}.${decimalPart}`;
       }
     }
     return value;
@@ -68,16 +66,23 @@ const Statistics = {
           endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59);
           break;
         case 'lastweek':
-          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 0, 0, 0);
+          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 23, 59, 59);
           endOfDay = currentDate;
           break;
         case 'lastmonth':
-          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
+          const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+          const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
+          startOfDay = new Date(lastMonthEnd.getFullYear(), lastMonthEnd.getMonth(), 1, 0, 0, 0);
+          endOfDay = lastMonthEnd;
+          break;
+        case 'thismonth':
+          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
           endOfDay = currentDate;
           break;
         default:
           throw new Error("Invalid period");
       }
+
 
       query += `
         AND

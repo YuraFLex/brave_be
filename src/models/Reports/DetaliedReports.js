@@ -14,8 +14,9 @@ const DetaliedReports = {
             if (decimalPart === '00') {
                 return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             } else {
+
                 const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                return `${integerWithSeparators},${decimalPart}`;
+                return `${integerWithSeparators}.${decimalPart}`;
             }
         }
         return value;
@@ -46,9 +47,6 @@ const DetaliedReports = {
             s.country AS region,
             s.size AS size,
             s.type AS traffic_type,
-            CASE
-            WHEN s.store = 'isweb' THEN 'WEB'
-            ELSE 'APP' END AS platform,
             SUM(s.impressions_cnt) AS impressions,
             SUM(s.impressions_${type}_sum) AS spend 
         FROM 
@@ -66,7 +64,7 @@ const DetaliedReports = {
         return query
     },
 
-    fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, size, traffictype, platform, region) {
+    fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region) {
         type = type.toLowerCase();
         let query;
         let dateStart, dateEnd;
@@ -82,12 +80,20 @@ const DetaliedReports = {
             dateStart = Math.floor(yesterday.getTime() / 1000);
             dateEnd = Math.floor(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59).getTime() / 1000);
         } else if (period === 'lastweek') {
-            const lastWeekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 0, 0, 0);
+            const lastWeekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 23, 59, 59);
             dateStart = Math.floor(lastWeekStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else if (period === 'lastmonth') {
-            const lastMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
+            const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+            const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
+            dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
+
+            const lastMonthStart = new Date(lastMonthEnd);
+            lastMonthStart.setDate(1);
             dateStart = Math.floor(lastMonthStart.getTime() / 1000);
+        } else if (period === 'thismonth') {
+            const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+            dateStart = Math.floor(thisMonthStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else {
             dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
@@ -96,17 +102,36 @@ const DetaliedReports = {
 
         query = this.generateQuery(displayBy, type);
 
-        query += `
-            GROUP BY
-                time_interval,
-                p.id`;
+        if (endPointUrl === 'all') {
+            query += `
+                GROUP BY
+                    time_interval,
+                    p.id`;
+        } else {
+            query += `
+                AND
+                s.${type} = ?`;
+        }
+
+        // if (size && size !== 'allSize') {
+        //     query += `
+        //         AND
+        //         s.size = ?`;
+        // }
+
+        // if (trafficType && trafficType !== 'allTypes') {
+        //     query += `
+        //         AND
+        //         s.type = ?`;
+        // }
 
         const connection = db.createConnection();
 
         try {
+            console.log('query:', query);
             const queryAsync = promisify(connection.query).bind(connection);
 
-            const result = await queryAsync(query, [partner_id, dateStart, dateEnd]);
+            const result = await queryAsync(query, [partner_id, dateStart, dateEnd, endPointUrl, size, trafficType]);
 
             console.log('result:', result);
             if (result.length > 0) {
@@ -119,7 +144,6 @@ const DetaliedReports = {
                     region: row.region,
                     size: row.size,
                     traffic_type: row.traffic_type,
-                    platform: row.platform,
                     bundle_domain: row.bundle_domain,
                     site_domain: row.site_domain,
                     time_interval: row.time_interval
@@ -135,7 +159,6 @@ const DetaliedReports = {
                     size: resultData.map((data) => data.size),
                     traffic_type: resultData.map((data) => data.traffic_type),
                     time_interval: resultData.map((data) => data.time_interval),
-                    platform: resultData.map((data) => data.platform),
                     bundle_domain: resultData.map((data) => data.bundle_domain),
                     site_domain: resultData.map((data) => data.site_domain),
                     labels: ['Spend', 'Region', 'Impressions'],

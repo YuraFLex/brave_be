@@ -6,12 +6,12 @@ class DetaliedReportsService {
 
         console.log('Дата в сервисе:', data);
 
-        const { partner_id, type, period, startDate, endDate, displayBy, size, traffictype, platform, region, checkedItems } = data;
+        const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region, checkedItems } = data;
 
 
         try {
 
-            const result = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, size, traffictype, platform, region, checkedItems)
+            const result = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region, checkedItems)
 
             const reportResult = new DetaliedReportsDto(result)
             reportResult.labels = checkedItems.labels;
@@ -31,11 +31,18 @@ class DetaliedReportsService {
         try {
             const result = await DetaliedReports.fetchSizesList(partnerId, type);
 
-
             result.sort((a, b) => {
-                const sizeA = parseInt(a.size.replace('x', ''));
-                const sizeB = parseInt(b.size.replace('x', ''));
-                return sizeA - sizeB;
+                const sizeA = parseInt(a.size.split('x')[0]);
+                const sizeB = parseInt(b.size.split('x')[0]);
+                const sizeNumberComparison = sizeA - sizeB;
+
+                if (sizeNumberComparison === 0) {
+                    const restA = a.size.substring(a.size.indexOf('x'));
+                    const restB = b.size.substring(b.size.indexOf('x'));
+                    return restA.localeCompare(restB);
+                }
+
+                return sizeNumberComparison;
             });
 
             return result;
@@ -44,6 +51,7 @@ class DetaliedReportsService {
             throw error;
         }
     }
+
 }
 
 module.exports = new DetaliedReportsService()
