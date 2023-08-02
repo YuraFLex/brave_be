@@ -122,7 +122,9 @@ const DetaliedReports = {
         query += `
             GROUP BY
                 time_interval,
-                dp.id`;
+                dp.id,
+                s.size,
+                s.type`;
         const connection = db.createConnection();
 
         try {
