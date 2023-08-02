@@ -102,36 +102,29 @@ const DetaliedReports = {
 
         query = this.generateQuery(displayBy, type);
 
-        if (endPointUrl === 'all') {
-            query += `
-                GROUP BY
-                    time_interval,
-                    p.id`;
-        } else {
-            query += `
-                AND
-                s.${type} = ?`;
+        let params = [partner_id, dateStart, dateEnd];
+
+        if (endPointUrl && endPointUrl !== 'all') {
+            query += ` AND s.${type} = ?`;
+            params.push(endPointUrl);
         }
 
-        // if (size && size !== 'allSize') {
-        //     query += `
-        //         AND
-        //         s.size = ?`;
-        // }
+        if (size && size !== 'allSize') {
+            query += ` AND s.size = ?`;
+            params.push(size);
+        }
 
-        // if (trafficType && trafficType !== 'allTypes') {
-        //     query += `
-        //         AND
-        //         s.type = ?`;
-        // }
-
+        if (trafficType && trafficType !== 'allTypes') {
+            query += ` AND s.type = ?`;
+            params.push(trafficType);
+        }
         const connection = db.createConnection();
 
         try {
             console.log('query:', query);
             const queryAsync = promisify(connection.query).bind(connection);
 
-            const result = await queryAsync(query, [partner_id, dateStart, dateEnd, endPointUrl, size, trafficType]);
+            const result = await queryAsync(query, params);
 
             console.log('result:', result);
             if (result.length > 0) {
@@ -147,32 +140,36 @@ const DetaliedReports = {
                     bundle_domain: row.bundle_domain,
                     site_domain: row.site_domain,
                     time_interval: row.time_interval
-                }))
+                }));
 
-                const detaliedReportsDto = {
-                    spend: resultData.map((data) => data.spend),
-                    impressions: resultData.map((data) => data.impressions),
-                    app_name: resultData.map((data) => data.app_name),
-                    app_bundle: resultData.map((data) => data.app_bundle),
-                    pub_id: resultData.map((data) => data.pub_id),
-                    region: resultData.map((data) => data.region),
-                    size: resultData.map((data) => data.size),
-                    traffic_type: resultData.map((data) => data.traffic_type),
-                    time_interval: resultData.map((data) => data.time_interval),
-                    bundle_domain: resultData.map((data) => data.bundle_domain),
-                    site_domain: resultData.map((data) => data.site_domain),
-                    labels: ['Spend', 'Region', 'Impressions'],
-                    isChecked: ['true', 'true', 'true']
+                if (resultData.length > 0) {
+                    const detaliedReportsDto = {
+                        spend: resultData.map((data) => data.spend),
+                        impressions: resultData.map((data) => data.impressions),
+                        app_name: resultData.map((data) => data.app_name),
+                        app_bundle: resultData.map((data) => data.app_bundle),
+                        pub_id: resultData.map((data) => data.pub_id),
+                        region: resultData.map((data) => data.region),
+                        size: resultData.map((data) => data.size),
+                        traffic_type: resultData.map((data) => data.traffic_type),
+                        time_interval: resultData.map((data) => data.time_interval),
+                        bundle_domain: resultData.map((data) => data.bundle_domain),
+                        site_domain: resultData.map((data) => data.site_domain),
+                        labels: ['Spend', 'Region', 'Impressions'],
+                        isChecked: ['true', 'true', 'true']
+                    };
+                    console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
+                    return detaliedReportsDto;
+                } else {
+                    // Handle the case when there is no data available
+                    throw new Error('No data found.');
                 }
-                console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
-                return detaliedReportsDto;
+            } else {
+                // Handle the case when there is no data available
+                throw new Error('No data found.');
             }
-
-            console.log('Результат в модели result:', result);
-            return result[0];
-
         } catch (error) {
-            throw new Error(`Error retrieving detalied reports: ${error.message} `);
+            throw new Error(`Error retrieving detailed reports: ${error.message}`);
         } finally {
             connection.end();
         }

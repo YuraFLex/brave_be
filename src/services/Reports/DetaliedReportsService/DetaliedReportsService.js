@@ -1,5 +1,4 @@
 const DetaliedReports = require('../../../models/Reports/DetaliedReports')
-const DetaliedReportsDto = require('../../../dtos/Reports/DetaliedReports')
 
 class DetaliedReportsService {
     async getDetalied(data) {
@@ -11,16 +10,12 @@ class DetaliedReportsService {
 
         try {
 
-            const result = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region, checkedItems)
-
-            const reportResult = new DetaliedReportsDto(result)
-            reportResult.labels = checkedItems.labels;
-            reportResult.isChecked = checkedItems.isChecked;
-            reportResult.period = period;
-            reportResult.displayBy = displayBy;
-
-
-            return reportResult;
+            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region);
+            detaliedReportsDto.labels = checkedItems.labels;
+            detaliedReportsDto.isChecked = checkedItems.isChecked;
+            detaliedReportsDto.period = period;
+            detaliedReportsDto.displayBy = displayBy;
+            return detaliedReportsDto;
 
         } catch (error) {
             console.log(error);
