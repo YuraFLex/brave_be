@@ -122,7 +122,7 @@ const DetaliedReports = {
         query += `
             GROUP BY
                 time_interval,
-                dp.id,
+                ${type === 'dsp' ? 'dp.id,' : 'sp.id,'}
                 s.size,
                 s.type`;
         const connection = db.createConnection();
