@@ -80,17 +80,16 @@ const DetaliedReports = {
             dateStart = Math.floor(yesterday.getTime() / 1000);
             dateEnd = Math.floor(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59).getTime() / 1000);
         } else if (period === 'lastweek') {
-            const lastWeekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 23, 59, 59);
+            const lastWeekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 7, 0, 0, 0);
             dateStart = Math.floor(lastWeekStart.getTime() / 1000);
-            dateEnd = Math.floor(currentDate.getTime() / 1000);
+            dateEnd = Math.floor(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59).getTime() / 1000);
         } else if (period === 'lastmonth') {
+            const lastMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
+            dateStart = Math.floor(lastMonthStart.getTime() / 1000);
+
             const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
             const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
             dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
-
-            const lastMonthStart = new Date(lastMonthEnd);
-            lastMonthStart.setDate(1);
-            dateStart = Math.floor(lastMonthStart.getTime() / 1000);
         } else if (period === 'thismonth') {
             const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
             dateStart = Math.floor(thisMonthStart.getTime() / 1000);
@@ -128,12 +127,11 @@ const DetaliedReports = {
         const connection = db.createConnection();
 
         try {
-            console.log('query:', query);
             const queryAsync = promisify(connection.query).bind(connection);
 
             const result = await queryAsync(query, params);
 
-            console.log('result:', result);
+
             if (result.length > 0) {
                 const resultData = result.map((row) => ({
                     spend: this.roundValue(row.spend),

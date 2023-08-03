@@ -70,7 +70,7 @@ const Statistics = {
           endOfDay = currentDate;
           break;
         case 'lastmonth':
-          const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+          const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
           const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
           startOfDay = new Date(lastMonthEnd.getFullYear(), lastMonthEnd.getMonth(), 1, 0, 0, 0);
           endOfDay = lastMonthEnd;
