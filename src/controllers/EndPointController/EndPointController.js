@@ -4,9 +4,17 @@ class EndPointController {
     async getData(req, res, next) {
         const { id, type } = req.params;
 
-        if (type === "SSP" || type === "DSP") {
+        if (type === "DSP") {
             try {
-                const endPointDtos = await EndPointService.getEndPointData(id, type);
+                const endPointDtos = await EndPointService.getEndPointData(id);
+                console.log('endPointDtos IN CONTROLLER:', endPointDtos);;
+                res.json(endPointDtos);
+            } catch (error) {
+                next(error);
+            }
+        } else if (type === 'SSP') {
+            try {
+                const endPointDtos = await EndPointService.getEndPointSSPData(id);
                 res.json(endPointDtos);
             } catch (error) {
                 next(error);
