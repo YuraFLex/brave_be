@@ -115,8 +115,6 @@ const SummaryReports = {
 
             const result = await queryAsync(query, params)
 
-            console.log('query:', query);
-
             if (result.length > 0) {
                 const resultData = result.map((row) => ({
                     timeouts: this.roundValue(row.timeouts),

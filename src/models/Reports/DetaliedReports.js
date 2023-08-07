@@ -64,7 +64,7 @@ const DetaliedReports = {
         return query
     },
 
-    fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region) {
+    fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType) {
         type = type.toLowerCase();
         let query;
         let dateStart, dateEnd;
@@ -166,11 +166,9 @@ const DetaliedReports = {
                     console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
                     return detaliedReportsDto;
                 } else {
-                    // Handle the case when there is no data available
                     throw new Error('No data found.');
                 }
             } else {
-                // Handle the case when there is no data available
                 throw new Error('No data found.');
             }
         } catch (error) {
@@ -194,7 +192,7 @@ const DetaliedReports = {
         LEFT JOIN 
             brave_new.partners p ON dp.partner_id = p.id
         WHERE 
-            p.id = 313 `
+            p.id = ? `
 
         const connection = db.createConnection();
 
