@@ -61,7 +61,7 @@ const SummaryReports = {
         return query;
     },
 
-    fetchSumReports: async function (partner_id, type, displayBy, endPointUrl, period, startDate, endDate) {
+    fetchSumReports: async function (partner_id, type, displayBy, endPointUrl, period, startDate, endDate, timeZone) {
         type = type.toLowerCase();
         let query;
         let dateStart, dateEnd;
@@ -108,6 +108,7 @@ const SummaryReports = {
             GROUP BY
                 time_interval`;
 
+        // console.log('query:', query);
         const connection = db.createConnection();
 
         try {

@@ -192,7 +192,7 @@ const DetaliedReports = {
         LEFT JOIN 
             brave_new.partners p ON dp.partner_id = p.id
         WHERE 
-            p.id = ? `
+            p.id = 313 `
 
         const connection = db.createConnection();
 

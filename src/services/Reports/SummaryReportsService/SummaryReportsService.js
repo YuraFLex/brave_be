@@ -3,10 +3,10 @@ const SummaryReportsDto = require('../../../dtos/Reports/SummaryReports');
 
 class SummaryReportsService {
     async getSummary(data) {
-        const { partner_id, type, displayBy, endPointUrl, period, startDate, endDate, checkedItems } = data;
+        const { partner_id, type, displayBy, endPointUrl, period, startDate, endDate, checkedItems, timeZone } = data;
 
         try {
-            const result = await SummaryReports.fetchSumReports(partner_id, type, displayBy, endPointUrl, period, startDate, endDate);
+            const result = await SummaryReports.fetchSumReports(partner_id, type, displayBy, endPointUrl, period, startDate, endDate, timeZone);
 
             const reportResult = new SummaryReportsDto(result);
             reportResult.labels = checkedItems.labels;
