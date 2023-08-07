@@ -3,20 +3,16 @@ const DetaliedReports = require('../../../models/Reports/DetaliedReports')
 class DetaliedReportsService {
     async getDetalied(data) {
 
-        console.log('Дата в сервисе:', data);
-
-        const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region, checkedItems } = data;
-
+        const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, checkedItems } = data;
 
         try {
-
-            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, platform, region);
+            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType,);
             detaliedReportsDto.labels = checkedItems.labels;
             detaliedReportsDto.isChecked = checkedItems.isChecked;
             detaliedReportsDto.period = period;
             detaliedReportsDto.displayBy = displayBy;
-            return detaliedReportsDto;
 
+            return detaliedReportsDto;
         } catch (error) {
             console.log(error);
         }

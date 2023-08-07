@@ -97,23 +97,25 @@ const SummaryReports = {
 
         query = this.generateQuery(displayBy, type);
 
-        if (endPointUrl === 'all') {
-            query += `
-                GROUP BY
-                    time_interval,
-                    p.id`;
-        } else if (endPointUrl) {
-            query += `
-                AND
-                s.${type} = ?`;
+        let params = [partner_id, dateStart, dateEnd]
+
+        if (endPointUrl && endPointUrl !== 'all') {
+            query += ` AND s.${type} = ?`;
+            params.push(endPointUrl);
         }
+
+        query += `
+            GROUP BY
+                time_interval`;
 
         const connection = db.createConnection();
 
         try {
             const queryAsync = promisify(connection.query).bind(connection);
 
-            const result = await queryAsync(query, [partner_id, dateStart, dateEnd, endPointUrl]);
+            const result = await queryAsync(query, params)
+
+            console.log('query:', query);
 
             if (result.length > 0) {
                 const resultData = result.map((row) => ({
