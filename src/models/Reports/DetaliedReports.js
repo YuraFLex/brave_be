@@ -22,7 +22,7 @@ const DetaliedReports = {
         return value;
     },
 
-    generateQuery: function (displayBy, type) {
+    generateQuery: function (displayBy, type, tableName) {
         let query = `
             SELECT
                 p.id AS partner_id,
@@ -50,7 +50,7 @@ const DetaliedReports = {
             SUM(s.impressions_cnt) AS impressions,
             SUM(s.impressions_${type}_sum) AS spend 
         FROM 
-            brave_source_statistic.\`08-2023\` AS s
+            brave_source_statistic.\`${tableName}\` AS s
         LEFT JOIN 
             ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
         LEFT JOIN 
@@ -60,9 +60,69 @@ const DetaliedReports = {
             AND s.unixtime >= ?
             AND s.unixtime < ?`;
 
-
-        return query
+        return query;
     },
+
+
+    getTableNameForPeriod: function (period, startDate, endDate) {
+        if (period === 'custom') {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const startYear = start.getFullYear();
+            const startMonth = start.getMonth() + 1;
+            const endYear = end.getFullYear();
+            const endMonth = end.getMonth() + 1;
+
+            if (startYear === endYear && startMonth === endMonth) {
+                return `${startMonth.toString().padStart(2, '0')}-${startYear}`;
+            } else if (endYear === startYear && endMonth - startMonth === 1) {
+                return [
+                    `${startMonth.toString().padStart(2, '0')}-${startYear}`,
+                    `${endMonth.toString().padStart(2, '0')}-${endYear}`
+                ].join('-');
+            } else {
+                const tableNames = [];
+                let currentYear = startYear;
+                let currentMonth = startMonth;
+
+                while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+                    tableNames.push(`${currentMonth.toString().padStart(2, '0')}-${currentYear}`);
+                    if (currentMonth === 12) {
+                        currentMonth = 1;
+                        currentYear++;
+                    } else {
+                        currentMonth++;
+                    }
+                }
+
+                return tableNames.join('-');
+            }
+        } else {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
+
+            let lastMonth, lastYear;
+
+            if (period === 'lastmonth') {
+                lastMonth = currentDate.getMonth();
+                lastYear = currentYear;
+                if (lastMonth === 0) {
+                    lastMonth = 12;
+                    lastYear = currentYear - 1;
+                }
+                return `${lastMonth.toString().padStart(2, '0')}-${lastYear}`;
+
+            } else if (period === 'today' || period === 'yesterday' || period === 'lastweek') {
+                return `${currentMonth.toString().padStart(2, '0')}-${currentYear}`;
+            } else if (period === 'thismonth') {
+                return `${currentMonth.toString().padStart(2, '0')}-${currentYear}`;
+            } else {
+                throw new Error('Invalid period.');
+            }
+        }
+    },
+
 
     fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType) {
         type = type.toLowerCase();
@@ -99,7 +159,10 @@ const DetaliedReports = {
             dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
         }
 
-        query = this.generateQuery(displayBy, type);
+        const tableName = this.getTableNameForPeriod(period, startDate, endDate);
+        query = this.generateQuery(displayBy, type, tableName);
+
+
 
         let params = [partner_id, dateStart, dateEnd];
 
@@ -124,6 +187,8 @@ const DetaliedReports = {
                 ${type === 'dsp' ? 'dp.id,' : 'sp.id,'}
                 s.size,
                 s.type`;
+
+        console.log('query:', query);
         const connection = db.createConnection();
 
         try {
