@@ -95,7 +95,7 @@ const DetaliedReports = {
                     }
                 }
 
-                return tableNames.join('-');
+                return tableNames;
             }
         } else {
             const currentDate = new Date();
