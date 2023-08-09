@@ -81,20 +81,20 @@ const DetaliedReports = {
             const start = new Date(startDate);
             const end = new Date(endDate);
             const startYear = start.getFullYear();
-            const startMonth = start.getMonth() + 1;
+            const startMonth = start.getMonth();
             const endYear = end.getFullYear();
-            const endMonth = end.getMonth() + 1;
+            const endMonth = end.getMonth();
 
             if (startYear === endYear && startMonth === endMonth) {
-                return `${startMonth.toString().padStart(2, '0')}-${startYear}`;
+                return [`${startMonth.toString().padStart(2, '0')}-${startYear}`];
             } else {
                 const tableNames = [];
-                let currentDate = new Date(startYear, startMonth - 1, 1);
+                let currentDate = new Date(startYear, startMonth, 1);
 
                 while (currentDate <= end) {
                     const currentYear = currentDate.getFullYear();
-                    const currentMonth = currentDate.getMonth() + 1;
-                    tableNames.push(`${currentMonth.toString().padStart(2, '0')}-${currentYear}`);
+                    const currentMonth = currentDate.getMonth();
+                    tableNames.push(`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`);
 
                     currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
                 }
@@ -104,28 +104,29 @@ const DetaliedReports = {
         } else {
             const currentDate = new Date();
             const currentYear = currentDate.getFullYear();
-            const currentMonth = currentDate.getMonth() + 1;
+            const currentMonth = currentDate.getMonth();
 
             let lastMonth, lastYear;
 
             if (period === 'lastmonth') {
-                lastMonth = currentDate.getMonth();
+                lastMonth = currentMonth - 1;
                 lastYear = currentYear;
-                if (lastMonth === 0) {
-                    lastMonth = 12;
+                if (lastMonth === -1) {
+                    lastMonth = 11;
                     lastYear = currentYear - 1;
                 }
-                return `${lastMonth.toString().padStart(2, '0')}-${lastYear}`;
+                return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
 
             } else if (period === 'today' || period === 'yesterday' || period === 'lastweek') {
-                return `${currentMonth.toString().padStart(2, '0')}-${currentYear}`;
+                return [`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`];
             } else if (period === 'thismonth') {
-                return `${currentMonth.toString().padStart(2, '0')}-${currentYear}`;
+                return [`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`];
             } else {
                 throw new Error('Invalid period.');
             }
         }
     },
+
 
 
     fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType) {
