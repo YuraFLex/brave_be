@@ -75,7 +75,6 @@ const DetaliedReports = {
     },
 
 
-
     getTableNameForPeriod: function (period, startDate, endDate) {
         if (period === 'custom') {
             const start = new Date(startDate);
@@ -86,17 +85,17 @@ const DetaliedReports = {
             const endMonth = end.getMonth();
 
             if (startYear === endYear && startMonth === endMonth) {
-                return [`${startMonth.toString().padStart(2, '0')}-${startYear}`];
+                return [`${(startMonth + 1).toString().padStart(2, '0')}-${startYear}`];
             } else {
                 const tableNames = [];
-                let currentDate = new Date(startYear, startMonth, 1);
+                let currentDate = new Date(startYear, startMonth, 0);
 
                 while (currentDate <= end) {
                     const currentYear = currentDate.getFullYear();
                     const currentMonth = currentDate.getMonth();
                     tableNames.push(`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`);
 
-                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
                 }
 
                 return tableNames;
@@ -126,6 +125,7 @@ const DetaliedReports = {
             }
         }
     },
+
 
 
 
