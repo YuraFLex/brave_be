@@ -28,9 +28,9 @@ class DetaliedReportsService {
                 const sizeNumberComparison = sizeA - sizeB;
 
                 if (sizeNumberComparison === 0) {
-                    const restA = a.size.substring(a.size.indexOf('x'));
-                    const restB = b.size.substring(b.size.indexOf('x'));
-                    return restA.localeCompare(restB);
+                    const restA = parseInt(a.size.split('x')[1]);
+                    const restB = parseInt(b.size.split('x')[1]);
+                    return restA - restB;
                 }
 
                 return sizeNumberComparison;
@@ -42,7 +42,6 @@ class DetaliedReportsService {
             throw error;
         }
     }
-
 }
 
 module.exports = new DetaliedReportsService()
