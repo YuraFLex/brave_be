@@ -22,46 +22,58 @@ const DetaliedReports = {
         return value;
     },
 
-    generateQuery: function (displayBy, type, tableName) {
-        let query = `
-            SELECT
-                p.id AS partner_id,
-                DATE_FORMAT(FROM_UNIXTIME(s.unixtime), `;
+    generateQuery: function (displayBy, type, tableNames, partnerId, startDate, endDate, endPointUrl, size, trafficType) {
+        let displayByFormat;
 
         if (displayBy === 'hour') {
-            query += `'%H:00'`;
+            displayByFormat = `'%H:00'`;
         } else if (displayBy === 'day') {
-            query += `'%Y/%m/%d'`;
+            displayByFormat = `'%Y/%m/%d'`;
         } else if (displayBy === 'month') {
-            query += `'%Y/%m'`;
+            displayByFormat = `'%Y/%m'`;
         } else if (displayBy === 'year') {
-            query += `'%Y'`;
+            displayByFormat = `'%Y'`;
         }
 
-        query += `) AS time_interval,
-            IF(s.store != 'isweb', s.bundle_domain, '') AS bundle_domain,
-            IF(s.store = 'isweb', s.bundle_domain, '') AS site_domain,
-            s.source_name AS app_name,
-            s.store AS app_bundle,
-            s.pub_id AS pub_id,
-            s.country AS region,
-            s.size AS size,
-            s.type AS traffic_type,
-            SUM(s.impressions_cnt) AS impressions,
-            SUM(s.impressions_${type}_sum) AS spend 
-        FROM 
-            brave_source_statistic.\`${tableName}\` AS s
-        LEFT JOIN 
-            ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
-        LEFT JOIN 
-            ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
-        WHERE 
-            p.id = ?
-            AND s.unixtime >= ?
-            AND s.unixtime < ?`;
+        const subQueries = tableNames.map(tableName => `
+            SELECT
+                p.id AS partner_id,
+                DATE_FORMAT(FROM_UNIXTIME(s.unixtime), ${displayByFormat}) AS time_interval,
+                IF(s.store != 'isweb', s.bundle_domain, '') AS bundle_domain,
+                IF(s.store = 'isweb', s.bundle_domain, '') AS site_domain,
+                s.source_name AS app_name,
+                s.store AS app_bundle,
+                s.pub_id AS pub_id,
+                s.country AS region,
+                s.size AS size,
+                s.type AS traffic_type,
+                SUM(s.impressions_cnt) AS impressions,
+                SUM(s.impressions_${type}_sum) AS spend 
+            FROM 
+                brave_source_statistic.\`${tableName}\` AS s
+            LEFT JOIN 
+                ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
+            LEFT JOIN 
+                ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
+            WHERE 
+                p.id = ?
+                AND s.unixtime >= ?
+                AND s.unixtime < ?
+                ${endPointUrl && endPointUrl !== 'all' ? ` AND s.${type} = '${endPointUrl}'` : ''}
+                ${size && size !== 'allSize' ? ` AND s.size = '${size}'` : ''}
+                ${trafficType && trafficType !== 'allTypes' ? ` AND s.type = '${trafficType}'` : ''}
+            GROUP BY
+                time_interval,
+                ${type === 'dsp' ? 'dp.id,' : 'sp.id,'}
+                s.size,
+                s.type
+        `);
 
-        return query;
+        const unionAllQuery = subQueries.join(' UNION ALL ');
+
+        return unionAllQuery;
     },
+
 
 
     getTableNameForPeriod: function (period, startDate, endDate) {
@@ -75,24 +87,16 @@ const DetaliedReports = {
 
             if (startYear === endYear && startMonth === endMonth) {
                 return `${startMonth.toString().padStart(2, '0')}-${startYear}`;
-            } else if (endYear === startYear && endMonth - startMonth === 1) {
-                return [
-                    `${startMonth.toString().padStart(2, '0')}-${startYear}`,
-                    `${endMonth.toString().padStart(2, '0')}-${endYear}`
-                ].join('-');
             } else {
                 const tableNames = [];
-                let currentYear = startYear;
-                let currentMonth = startMonth;
+                let currentDate = new Date(startYear, startMonth - 1, 1);
 
-                while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+                while (currentDate <= end) {
+                    const currentYear = currentDate.getFullYear();
+                    const currentMonth = currentDate.getMonth() + 1;
                     tableNames.push(`${currentMonth.toString().padStart(2, '0')}-${currentYear}`);
-                    if (currentMonth === 12) {
-                        currentMonth = 1;
-                        currentYear++;
-                    } else {
-                        currentMonth++;
-                    }
+
+                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
                 }
 
                 return tableNames;
@@ -159,43 +163,25 @@ const DetaliedReports = {
             dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
         }
 
-        const tableName = this.getTableNameForPeriod(period, startDate, endDate);
-        query = this.generateQuery(displayBy, type, tableName);
+        const tableNames = this.getTableNameForPeriod(period, startDate, endDate);
+        const tableNameArray = Array.isArray(tableNames) ? tableNames : [tableNames];
+        query = this.generateQuery(displayBy, type, tableNameArray, partner_id, startDate, endDate, endPointUrl, size, trafficType);
 
+        let params = [];
 
+        tableNameArray.forEach(tableName => {
+            params = params.concat([
+                partner_id, dateStart, dateEnd,
+                partner_id, dateStart, dateEnd
+            ]);
+        });
 
-        let params = [partner_id, dateStart, dateEnd];
-
-        if (endPointUrl && endPointUrl !== 'all') {
-            query += ` AND s.${type} = ?`;
-            params.push(endPointUrl);
-        }
-
-        if (size && size !== 'allSize') {
-            query += ` AND s.size = ?`;
-            params.push(size);
-        }
-
-        if (trafficType && trafficType !== 'allTypes') {
-            query += ` AND s.type = ?`;
-            params.push(trafficType);
-        }
-
-        query += `
-            GROUP BY
-                time_interval,
-                ${type === 'dsp' ? 'dp.id,' : 'sp.id,'}
-                s.size,
-                s.type`;
-
-        console.log('query:', query);
         const connection = db.createConnection();
 
         try {
             const queryAsync = promisify(connection.query).bind(connection);
 
             const result = await queryAsync(query, params);
-
 
             if (result.length > 0) {
                 const resultData = result.map((row) => ({
@@ -237,7 +223,7 @@ const DetaliedReports = {
                 throw new Error('No data found.');
             }
         } catch (error) {
-            throw new Error(`Error retrieving detailed reports: ${error.message}`);
+            throw new Error(`Error retrieving detailed reports: ${error.message} `);
         } finally {
             connection.end();
         }
@@ -248,16 +234,16 @@ const DetaliedReports = {
         type = type.toLowerCase();
 
         let query = `
-        SELECT DISTINCT 
-	        cusl.size AS size 
+                SELECT DISTINCT
+        cusl.size AS size
         FROM
-            brave_new.cache_uniq_sizesdsp_list cusl
-        LEFT JOIN 
-            brave_new.dsp_points dp ON cusl.dsp_id = dp.id
-        LEFT JOIN 
-            brave_new.partners p ON dp.partner_id = p.id
-        WHERE 
-            p.id = 313 `
+        brave_new.cache_uniq_sizesdsp_list cusl
+                LEFT JOIN
+        brave_new.dsp_points dp ON cusl.dsp_id = dp.id
+                LEFT JOIN
+        brave_new.partners p ON dp.partner_id = p.id
+        WHERE
+        p.id = 313 `
 
         const connection = db.createConnection();
 
