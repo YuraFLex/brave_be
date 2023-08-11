@@ -2,10 +2,11 @@ const db = require('../../config/db');
 const { promisify } = require('util');
 
 const EndPoint = {
-    getEndPointList: async function (partnerId) {
 
-        const query = `SELECT 
-                id, point, active  
+    getEndPointList: async function (partnerId) {
+        const query = `
+            SELECT 
+                id, point, active, prebid_pid 
             FROM 
                 brave_new.dsp_points dp 
             WHERE 
@@ -17,7 +18,17 @@ const EndPoint = {
         try {
             const queryAsync = promisify(connection.query).bind(connection);
             const result = await queryAsync(query, [partnerId]);
-            return result;
+
+            const endPointList = result.map(entry => {
+                const point = entry.point.trim();
+                const newPoint = point === '' ? entry.prebid_pid : point;
+                return { id: entry.id, point: newPoint, active: entry.active, prebid_pid: entry.prebid_pid };
+            });
+
+            console.log('getEndPointList result:', result);
+            console.log('endPointList:', endPointList);
+
+            return endPointList;
         } catch (error) {
             console.log(error);
         } finally {
