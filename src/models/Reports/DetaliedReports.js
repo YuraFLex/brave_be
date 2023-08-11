@@ -177,7 +177,7 @@ const DetaliedReports = {
             ]);
         });
 
-        console.log('query:', query);
+        // console.log('query:', query);
 
 
         const connection = db.createConnection();
