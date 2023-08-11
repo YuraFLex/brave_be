@@ -85,17 +85,17 @@ const DetaliedReports = {
             const endMonth = end.getMonth();
 
             if (startYear === endYear && startMonth === endMonth) {
-                return [`${(startMonth + 1).toString().padStart(2, '0')}-${startYear}`];
+                return [`${startMonth.toString().padStart(2, '0')}-${startYear}`];
             } else {
                 const tableNames = [];
-                let currentDate = new Date(startYear, startMonth, 0);
+                let currentDate = new Date(startYear, startMonth, 1);
 
                 while (currentDate <= end) {
                     const currentYear = currentDate.getFullYear();
                     const currentMonth = currentDate.getMonth();
                     tableNames.push(`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`);
 
-                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
                 }
 
                 return tableNames;
@@ -168,16 +168,20 @@ const DetaliedReports = {
         const tableNameArray = Array.isArray(tableNames) ? tableNames : [tableNames];
         query = this.generateQuery(displayBy, type, tableNameArray, partner_id, startDate, endDate, endPointUrl, size, trafficType);
 
+
         let params = [];
 
         tableNameArray.forEach(tableName => {
             params = params.concat([
-                partner_id, dateStart, dateEnd,
                 partner_id, dateStart, dateEnd
             ]);
         });
 
+        console.log('query:', query);
+
+
         const connection = db.createConnection();
+
 
         try {
             const queryAsync = promisify(connection.query).bind(connection);
