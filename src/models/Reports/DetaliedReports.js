@@ -173,7 +173,7 @@ const DetaliedReports = {
                     totalImpressions += parseFloat(row.impressions);
 
                     return {
-                        spend: row.spend,
+                        spend: roundValue(row.spend),
                         impressions: roundValue(row.impressions),
                         app_name: row.app_name,
                         size: row.size,
