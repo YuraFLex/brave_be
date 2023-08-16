@@ -108,7 +108,7 @@ const SummaryReports = {
                     impressions: roundValue(row.impressions),
                     requests: roundValue(row.requests),
                     responses: roundValue(row.responses),
-                    spend: roundValue(row.spend),
+                    spend: row.spend,
                     win_rate: roundValue(row.win_rate),
                     time_interval: row.time_interval,
                 }));
