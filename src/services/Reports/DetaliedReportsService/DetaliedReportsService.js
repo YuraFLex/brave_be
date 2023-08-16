@@ -3,12 +3,10 @@ const DetaliedReports = require('../../../models/Reports/DetaliedReports')
 class DetaliedReportsService {
     async getDetalied(data) {
 
-        const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, checkedItems } = data;
+        const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType } = data;
 
         try {
-            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType,);
-            detaliedReportsDto.labels = checkedItems.labels;
-            detaliedReportsDto.isChecked = checkedItems.isChecked;
+            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType);
             detaliedReportsDto.period = period;
             detaliedReportsDto.displayBy = displayBy;
 

@@ -1,26 +1,8 @@
-const { log } = require("console");
 const db = require("../../config/db");
 const { promisify } = require("util");
+const { roundValue } = require('../../utils/index')
 
 const Statistics = {
-  roundValue(value) {
-    const parsedValue = parseFloat(value);
-    if (!isNaN(parsedValue)) {
-      const roundedValue = Math.round(parsedValue * 100) / 100;
-      const formattedValue = roundedValue.toFixed(2);
-
-      const [integerPart, decimalPart] = formattedValue.split('.');
-
-      if (decimalPart === '00') {
-        return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      } else {
-
-        const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return `${integerWithSeparators}.${decimalPart}`;
-      }
-    }
-    return value;
-  },
 
   getStatistics: async function (partner_id, type, startDate, endDate, endPoint, period) {
     type = type.toLowerCase();
@@ -123,11 +105,11 @@ const Statistics = {
 
       if (results.length > 0) {
         const statistics = results[0];
-        statistics.spend = this.roundValue(statistics.spend);
-        statistics.impressions_cnt = this.roundValue(statistics.impressions_cnt);
-        statistics.responses = this.roundValue(statistics.responses);
-        statistics.time_outs = this.roundValue(statistics.time_outs);
-        statistics.win_rate = this.roundValue(statistics.win_rate);
+        statistics.spend = roundValue(statistics.spend);
+        statistics.impressions_cnt = roundValue(statistics.impressions_cnt);
+        statistics.responses = roundValue(statistics.responses);
+        statistics.time_outs = roundValue(statistics.time_outs);
+        statistics.win_rate = roundValue(statistics.win_rate);
       }
 
       console.log('Result:', results);

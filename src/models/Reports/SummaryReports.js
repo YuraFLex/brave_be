@@ -1,25 +1,8 @@
 const db = require('../../config/db');
 const { promisify } = require('util');
+const { roundValue } = require('../../utils')
 
 const SummaryReports = {
-    roundValue(value) {
-        const parsedValue = parseFloat(value);
-        if (!isNaN(parsedValue)) {
-            const roundedValue = Math.round(parsedValue * 100) / 100;
-            const formattedValue = roundedValue.toFixed(2);
-
-            const [integerPart, decimalPart] = formattedValue.split('.');
-
-            if (decimalPart === '00') {
-                return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            } else {
-
-                const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                return `${integerWithSeparators}.${decimalPart}`;
-            }
-        }
-        return value;
-    },
 
     generateQuery: function (displayBy, type) {
         let query = `
@@ -61,10 +44,12 @@ const SummaryReports = {
         return query;
     },
 
-    fetchSumReports: async function (partner_id, type, displayBy, endPointUrl, period, startDate, endDate, timeZone) {
+    fetchSumReports: async function (partner_id, type, displayBy, endPointUrl, period, startDate, endDate) {
         type = type.toLowerCase();
         let query;
         let dateStart, dateEnd;
+
+        console.log('period:', period);
 
         const currentDate = new Date();
 
@@ -118,13 +103,13 @@ const SummaryReports = {
 
             if (result.length > 0) {
                 const resultData = result.map((row) => ({
-                    timeouts: this.roundValue(row.timeouts),
-                    time_outs: this.roundValue(row.time_outs),
-                    impressions: this.roundValue(row.impressions),
-                    requests: this.roundValue(row.requests),
-                    responses: this.roundValue(row.responses),
-                    spend: this.roundValue(row.spend),
-                    win_rate: this.roundValue(row.win_rate),
+                    timeouts: roundValue(row.timeouts),
+                    time_outs: roundValue(row.time_outs),
+                    impressions: roundValue(row.impressions),
+                    requests: roundValue(row.requests),
+                    responses: roundValue(row.responses),
+                    spend: roundValue(row.spend),
+                    win_rate: roundValue(row.win_rate),
                     time_interval: row.time_interval,
                 }));
 

@@ -1,26 +1,8 @@
 const db = require('../../config/db');
 const { promisify } = require('util');
+const { roundValue } = require('../../utils')
 
 const DetaliedReports = {
-
-    roundValue(value) {
-        const parsedValue = parseFloat(value);
-        if (!isNaN(parsedValue)) {
-            const roundedValue = Math.round(parsedValue * 100) / 100;
-            const formattedValue = roundedValue.toFixed(2);
-
-            const [integerPart, decimalPart] = formattedValue.split('.');
-
-            if (decimalPart === '00') {
-                return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            } else {
-
-                const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                return `${integerWithSeparators}.${decimalPart}`;
-            }
-        }
-        return value;
-    },
 
     generateQuery: function (displayBy, type, tableNames, partnerId, startDate, endDate, endPointUrl, size, trafficType) {
         let displayByFormat;
@@ -40,11 +22,8 @@ const DetaliedReports = {
                 p.id AS partner_id,
                 DATE_FORMAT(FROM_UNIXTIME(s.unixtime), ${displayByFormat}) AS time_interval,
                 IF(s.store != 'isweb', s.bundle_domain, '') AS bundle_domain,
-                IF(s.store = 'isweb', s.bundle_domain, '') AS site_domain,
+                IF(s.store = 'isweb', s.bundle_domain, '') AS site_domain, 
                 s.source_name AS app_name,
-                s.store AS app_bundle,
-                s.pub_id AS pub_id,
-                s.country AS region,
                 s.size AS size,
                 s.type AS traffic_type,
                 SUM(s.impressions_cnt) AS impressions,
@@ -179,59 +158,60 @@ const DetaliedReports = {
 
         // console.log('query:', query);
 
-
         const connection = db.createConnection();
-
 
         try {
             const queryAsync = promisify(connection.query).bind(connection);
-
             const result = await queryAsync(query, params);
 
             if (result.length > 0) {
-                const resultData = result.map((row) => ({
-                    spend: this.roundValue(row.spend),
-                    impressions: this.roundValue(row.impressions),
-                    app_name: row.app_name,
-                    app_bundle: row.app_bundle,
-                    pub_id: row.pub_id,
-                    region: row.region,
-                    size: row.size,
-                    traffic_type: row.traffic_type,
-                    bundle_domain: row.bundle_domain,
-                    site_domain: row.site_domain,
-                    time_interval: row.time_interval
-                }));
+                let totalSpend = 0;
+                let totalImpressions = 0;
 
-                if (resultData.length > 0) {
-                    const detaliedReportsDto = {
-                        spend: resultData.map((data) => data.spend),
-                        impressions: resultData.map((data) => data.impressions),
-                        app_name: resultData.map((data) => data.app_name),
-                        app_bundle: resultData.map((data) => data.app_bundle),
-                        pub_id: resultData.map((data) => data.pub_id),
-                        region: resultData.map((data) => data.region),
-                        size: resultData.map((data) => data.size),
-                        traffic_type: resultData.map((data) => data.traffic_type),
-                        time_interval: resultData.map((data) => data.time_interval),
-                        bundle_domain: resultData.map((data) => data.bundle_domain),
-                        site_domain: resultData.map((data) => data.site_domain),
-                        labels: ['Spend', 'Region', 'Impressions'],
-                        isChecked: ['true', 'true', 'true']
+                const resultData = result.map((row) => {
+                    totalSpend += parseFloat(row.spend);
+                    totalImpressions += parseFloat(row.impressions);
+
+                    return {
+                        spend: row.spend,
+                        impressions: row.impressions,
+                        app_name: row.app_name,
+                        size: row.size,
+                        traffic_type: row.traffic_type,
+                        bundle_domain: row.bundle_domain,
+                        site_domain: row.site_domain,
+                        time_interval: row.time_interval
                     };
-                    console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
-                    return detaliedReportsDto;
-                } else {
-                    throw new Error('No data found.');
-                }
+                });
+
+                const detaliedReportsDto = {
+                    spend: resultData.map((data) => data.spend),
+                    impressions: resultData.map((data) => data.impressions),
+                    app_name: resultData.map((data) => data.app_name),
+                    size: resultData.map((data) => data.size),
+                    traffic_type: resultData.map((data) => data.traffic_type),
+                    time_interval: resultData.map((data) => data.time_interval),
+                    bundle_domain: resultData.map((data) => data.bundle_domain),
+                    site_domain: resultData.map((data) => data.site_domain),
+                    labels: ['Spend', 'Region', 'Impressions'],
+                    isChecked: ['true', 'true', 'true'],
+                    total: {
+                        spend: roundValue(totalSpend),
+                        impressions: roundValue(totalImpressions),
+                    }
+                };
+
+                console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
+                return detaliedReportsDto;
             } else {
                 throw new Error('No data found.');
             }
         } catch (error) {
-            throw new Error(`Error retrieving detailed reports: ${error.message} `);
+            throw new Error(`Error retrieving detailed reports: ${error.message}`);
         } finally {
             connection.end();
         }
+
     },
 
     fetchSizesList: async function (partnerId, type) {
