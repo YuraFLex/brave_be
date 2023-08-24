@@ -102,16 +102,37 @@ const SummaryReports = {
             const result = await queryAsync(query, params)
 
             if (result.length > 0) {
-                const resultData = result.map((row) => ({
-                    timeouts: roundValue(row.timeouts),
-                    time_outs: roundValue(row.time_outs),
-                    impressions: roundValue(row.impressions),
-                    requests: roundValue(row.requests),
-                    responses: roundValue(row.responses),
-                    spend: roundValue(row.spend),
-                    win_rate: roundValue(row.win_rate),
-                    time_interval: row.time_interval,
-                }));
+                let totalTimeOuts = 0;
+                let totalTime_Outs = 0;
+                let totalImpressions = 0;
+                let totalRequests = 0;
+                let totalResponses = 0;
+                let totalSpend = 0;
+                let totalWinRate = 0;
+
+
+
+                const resultData = result.map((row) => {
+
+                    totalTimeOuts += parseFloat(row.timeouts);
+                    totalTime_Outs += parseFloat(row.time_outs);
+                    totalImpressions += parseFloat(row.impressions);
+                    totalRequests += parseFloat(row.requests);
+                    totalResponses += parseFloat(row.responses);
+                    totalSpend += parseFloat(row.spend);
+                    totalWinRate += parseFloat(row.win_rate);
+
+                    return {
+                        timeouts: roundValue(row.timeouts),
+                        time_outs: roundValue(row.time_outs),
+                        impressions: roundValue(row.impressions),
+                        requests: roundValue(row.requests),
+                        responses: roundValue(row.responses),
+                        spend: roundValue(row.spend),
+                        win_rate: roundValue(row.win_rate),
+                        time_interval: row.time_interval,
+                    }
+                });
 
                 console.log('Результат в модели:', resultData);
 
@@ -124,8 +145,15 @@ const SummaryReports = {
                     spend: resultData.map((data) => data.spend),
                     win_rate: resultData.map((data) => data.win_rate),
                     time_interval: resultData.map((data) => data.time_interval),
-                    labels: ['Spend', 'Impressions', 'Requests'],
-                    isChecked: ['true', 'true', 'true']
+                    total: {
+                        timeouts: roundValue(totalTimeOuts),
+                        time_outs: roundValue(totalTime_Outs),
+                        impressions: roundValue(totalImpressions),
+                        requests: roundValue(totalRequests),
+                        responses: roundValue(totalResponses),
+                        spend: roundValue(totalSpend),
+                        win_rate: roundValue(totalWinRate)
+                    }
                 };
 
                 return summaryReportsDto;

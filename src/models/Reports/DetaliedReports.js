@@ -193,8 +193,6 @@ const DetaliedReports = {
                     time_interval: resultData.map((data) => data.time_interval),
                     bundle_domain: resultData.map((data) => data.bundle_domain),
                     site_domain: resultData.map((data) => data.site_domain),
-                    labels: ['Spend', 'Region', 'Impressions'],
-                    isChecked: ['true', 'true', 'true'],
                     total: {
                         spend: roundValue(totalSpend),
                         impressions: roundValue(totalImpressions),

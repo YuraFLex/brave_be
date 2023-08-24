@@ -7,6 +7,7 @@ module.exports = class SummaryReportsDto {
     spend;
     win_rate;
     time_interval;
+    total;
 
     constructor(model) {
         this.timeouts = model.timeouts;
@@ -17,5 +18,6 @@ module.exports = class SummaryReportsDto {
         this.spend = model.spend;
         this.win_rate = model.win_rate;
         this.time_interval = model.time_interval;
+        this.total = model.total;
     }
 }
