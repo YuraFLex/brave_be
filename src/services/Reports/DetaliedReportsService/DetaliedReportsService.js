@@ -3,12 +3,13 @@ const DetaliedReports = require('../../../models/Reports/DetaliedReports')
 class DetaliedReportsService {
     async getDetalied(data) {
 
-        const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType } = data;
+        const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy } = data;
 
         try {
-            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType);
+            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy);
             detaliedReportsDto.period = period;
             detaliedReportsDto.displayBy = displayBy;
+            detaliedReportsDto.groupBy = groupBy;
 
             return detaliedReportsDto;
         } catch (error) {

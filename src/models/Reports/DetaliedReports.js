@@ -4,8 +4,10 @@ const { roundValue } = require('../../utils')
 
 const DetaliedReports = {
 
-    generateQuery: function (displayBy, type, tableNames, partnerId, startDate, endDate, endPointUrl, size, trafficType) {
+    generateQuery: function (displayBy, type, tableNames, partnerId, startDate, endDate, endPointUrl, size, trafficType, groupBy) {
         let displayByFormat;
+
+        console.log("groupBy in Model:", groupBy);
 
         if (displayBy === 'hour') {
             displayByFormat = `'%H:00'`;
@@ -16,6 +18,22 @@ const DetaliedReports = {
         } else if (displayBy === 'year') {
             displayByFormat = `'%Y'`;
         }
+
+        const groupByClauses = groupBy.map(group => {
+            if (group === 'timeInterval') {
+                return 'time_interval'
+            } else if (group === 'company') {
+                return `${type === 'dsp' ? 'dp.id' : 'sp.id'}`
+            } else if (group === 'appBundle') {
+                return 'bundle_domain';
+            } else if (group === 'appName') {
+                return 'app_name';
+            } else if (group === 'size') {
+                return 'size';
+            } else if (group === 'trafficType') {
+                return 'traffic_type';
+            }
+        });
 
         const subQueries = tableNames.map(tableName => `
             SELECT
@@ -41,11 +59,9 @@ const DetaliedReports = {
                 ${endPointUrl && endPointUrl !== 'all' ? ` AND s.${type} = '${endPointUrl}'` : ''}
                 ${size && size !== 'allSize' ? ` AND s.size = '${size}'` : ''}
                 ${trafficType && trafficType !== 'allTypes' ? ` AND s.type = '${trafficType}'` : ''}
-            GROUP BY
-                time_interval,
-                ${type === 'dsp' ? 'dp.id,' : 'sp.id,'}
-                s.size,
-                s.type
+            GROUP BY    
+                ${groupByClauses.join(', ')}
+                
         `);
 
         const unionAllQuery = subQueries.join(' UNION ALL ');
@@ -108,7 +124,7 @@ const DetaliedReports = {
 
 
 
-    fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType) {
+    fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy) {
         type = type.toLowerCase();
         let query;
         let dateStart, dateEnd;
@@ -145,7 +161,7 @@ const DetaliedReports = {
 
         const tableNames = this.getTableNameForPeriod(period, startDate, endDate);
         const tableNameArray = Array.isArray(tableNames) ? tableNames : [tableNames];
-        query = this.generateQuery(displayBy, type, tableNameArray, partner_id, startDate, endDate, endPointUrl, size, trafficType);
+        query = this.generateQuery(displayBy, type, tableNameArray, partner_id, startDate, endDate, endPointUrl, size, trafficType, groupBy);
 
 
         let params = [];
@@ -156,7 +172,7 @@ const DetaliedReports = {
             ]);
         });
 
-        // console.log('query:', query);
+        console.log('query:', query);
 
         const connection = db.createConnection();
 
