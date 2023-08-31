@@ -112,7 +112,7 @@ const Statistics = {
         statistics.win_rate = roundValue(statistics.win_rate);
       }
 
-      console.log('Result:', results);
+      // console.log('Result:', results);
 
       return results[0];
     } catch (error) {

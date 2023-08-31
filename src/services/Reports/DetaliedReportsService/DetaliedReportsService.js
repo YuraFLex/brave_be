@@ -1,4 +1,5 @@
 const DetaliedReports = require('../../../models/Reports/DetaliedReports')
+const DetaliedReportsDto = require('../../../dtos/Reports/DetaliedReports')
 
 class DetaliedReportsService {
     async getDetalied(data) {
@@ -6,16 +7,21 @@ class DetaliedReportsService {
         const { partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy } = data;
 
         try {
-            const detaliedReportsDto = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy);
-            detaliedReportsDto.period = period;
-            detaliedReportsDto.displayBy = displayBy;
-            detaliedReportsDto.groupBy = groupBy;
+            const result = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy);
 
-            return detaliedReportsDto;
+            const reportResult = new DetaliedReportsDto(result)
+            reportResult.period = period;
+            reportResult.displayBy = displayBy;
+            reportResult.groupBy = groupBy;
+
+            return reportResult;
         } catch (error) {
             console.log(error);
         }
     }
+
+
+
 
     async getSizesList(partnerId, type) {
         try {

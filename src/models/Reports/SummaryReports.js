@@ -134,7 +134,7 @@ const SummaryReports = {
                     }
                 });
 
-                console.log('Результат в модели:', resultData);
+                // console.log('Результат в модели:', resultData);
 
                 const summaryReportsDto = {
                     timeouts: resultData.map((data) => data.timeouts),
@@ -146,13 +146,13 @@ const SummaryReports = {
                     win_rate: resultData.map((data) => data.win_rate),
                     time_interval: resultData.map((data) => data.time_interval),
                     total: {
-                        timeouts: roundValue(totalTimeOuts),
-                        time_outs: roundValue(totalTime_Outs),
-                        impressions: roundValue(totalImpressions),
-                        requests: roundValue(totalRequests),
-                        responses: roundValue(totalResponses),
-                        spend: roundValue(totalSpend),
-                        win_rate: roundValue(totalWinRate)
+                        timeOut: roundValue(totalTimeOuts),
+                        t_outs: roundValue(totalTime_Outs),
+                        impress: roundValue(totalImpressions),
+                        req: roundValue(totalRequests),
+                        resp: roundValue(totalResponses),
+                        spending: roundValue(totalSpend),
+                        w_rate: roundValue(totalWinRate)
                     }
                 };
 
@@ -167,10 +167,7 @@ const SummaryReports = {
                     responses: [],
                     spend: [],
                     win_rate: [],
-                    gross_point: [],
                     time_interval: [],
-                    labels: [],
-                    isChecked: []
                 };
             }
         } catch (error) {

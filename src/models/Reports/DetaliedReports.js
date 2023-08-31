@@ -7,8 +7,6 @@ const DetaliedReports = {
     generateQuery: function (displayBy, type, tableNames, partnerId, startDate, endDate, endPointUrl, size, trafficType, groupBy) {
         let displayByFormat;
 
-        console.log("groupBy in Model:", groupBy);
-
         if (displayBy === 'hour') {
             displayByFormat = `'%H:00'`;
         } else if (displayBy === 'day') {
@@ -172,9 +170,10 @@ const DetaliedReports = {
             ]);
         });
 
-        console.log('query:', query);
+        // console.log('query:', query);
 
         const connection = db.createConnection();
+
 
         try {
             const queryAsync = promisify(connection.query).bind(connection);
@@ -185,6 +184,9 @@ const DetaliedReports = {
                 let totalImpressions = 0;
 
                 const resultData = result.map((row) => {
+
+                    const bundleDomain = row.bundle_domain === '' ? row.site_domain : row.bundle_domain;
+
                     totalSpend += parseFloat(row.spend);
                     totalImpressions += parseFloat(row.impressions);
 
@@ -194,11 +196,11 @@ const DetaliedReports = {
                         app_name: row.app_name,
                         size: row.size,
                         traffic_type: row.traffic_type,
-                        bundle_domain: row.bundle_domain,
-                        site_domain: row.site_domain,
+                        bundle_domain: bundleDomain,
                         time_interval: row.time_interval
                     };
                 });
+
 
                 const detaliedReportsDto = {
                     spend: resultData.map((data) => data.spend),
@@ -208,17 +210,26 @@ const DetaliedReports = {
                     traffic_type: resultData.map((data) => data.traffic_type),
                     time_interval: resultData.map((data) => data.time_interval),
                     bundle_domain: resultData.map((data) => data.bundle_domain),
-                    site_domain: resultData.map((data) => data.site_domain),
                     total: {
-                        spend: roundValue(totalSpend),
-                        impressions: roundValue(totalImpressions),
+                        spending: roundValue(totalSpend),
+                        impress: roundValue(totalImpressions),
                     }
                 };
 
-                console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
+                // console.log('Результат в модели detaliedReportsDto:', detaliedReportsDto);
                 return detaliedReportsDto;
             } else {
-                throw new Error('No data found.');
+                console.log('Результат в модели: Пусто');
+                return {
+                    spend: [],
+                    impressions: [],
+                    app_name: [],
+                    size: [],
+                    traffic_type: [],
+                    time_interval: [],
+                    bundle_domain: [],
+                    site_domain: [],
+                }
             }
         } catch (error) {
             throw new Error(`Error retrieving detailed reports: ${error.message}`);

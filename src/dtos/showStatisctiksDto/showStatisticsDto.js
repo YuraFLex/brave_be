@@ -1,16 +1,16 @@
 module.exports = class StatisticsDto {
-    spend;
-    impressions_cnt;
-    responses;
-    time_outs;
-    win_rate;
+    spends;
+    imp_cnt;
+    resp;
+    t_outs;
+    w_rate;
 
     constructor(model) {
-        this.spend = model.spend;
-        this.impressions_cnt = model.impressions_cnt;
-        this.responses = model.responses;
-        this.time_outs = model.time_outs;
-        this.win_rate = model.win_rate;
+        this.spends = model.spend;
+        this.imp_cnt = model.impressions_cnt;
+        this.resp = model.responses;
+        this.t_outs = model.time_outs;
+        this.w_rate = model.win_rate;
     }
 }
 
