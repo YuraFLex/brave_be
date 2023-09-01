@@ -40,30 +40,33 @@ const Statistics = {
 
       switch (period) {
         case 'today':
-          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0, 0, 0);
+          startOfDay = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0));
           endOfDay = currentDate;
           break;
         case 'yesterday':
-          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 0, 0, 0);
-          endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59);
+          const yesterdayUTC = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
+          startOfDay = yesterdayUTC;
+          endOfDay = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59));
           break;
         case 'lastweek':
-          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6, 23, 59, 59);
+          const lastWeekStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 6, 23, 59, 59));
+          startOfDay = lastWeekStart;
           endOfDay = currentDate;
           break;
         case 'lastmonth':
-          const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
+          const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1, 0, 0, 0));
           const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
-          startOfDay = new Date(lastMonthEnd.getFullYear(), lastMonthEnd.getMonth(), 1, 0, 0, 0);
+          startOfDay = new Date(Date.UTC(lastMonthEnd.getUTCFullYear(), lastMonthEnd.getUTCMonth(), 1, 0, 0, 0));
           endOfDay = lastMonthEnd;
           break;
         case 'thismonth':
-          startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+          startOfDay = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
           endOfDay = currentDate;
           break;
         default:
           throw new Error("Invalid period");
       }
+
 
 
       query += `

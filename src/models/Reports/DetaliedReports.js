@@ -67,36 +67,36 @@ const DetaliedReports = {
         return unionAllQuery;
     },
 
-
     getTableNameForPeriod: function (period, startDate, endDate) {
         if (period === 'custom') {
             const start = new Date(startDate);
             const end = new Date(endDate);
-            const startYear = start.getFullYear();
-            const startMonth = start.getMonth();
-            const endYear = end.getFullYear();
-            const endMonth = end.getMonth();
+            const startYear = start.getUTCFullYear();
+            const startMonth = start.getUTCMonth();
+            const endYear = end.getUTCFullYear();
+            const endMonth = end.getUTCMonth();
 
             if (startYear === endYear && startMonth === endMonth) {
-                return [`${startMonth.toString().padStart(2, '0')}-${startYear}`];
+                return [`${(startMonth + 1).toString().padStart(2, '0')}-${startYear}`];
             } else {
                 const tableNames = [];
                 let currentDate = new Date(startYear, startMonth, 1);
 
                 while (currentDate <= end) {
-                    const currentYear = currentDate.getFullYear();
-                    const currentMonth = currentDate.getMonth();
+                    const currentYear = currentDate.getUTCFullYear();
+                    const currentMonth = currentDate.getUTCMonth();
                     tableNames.push(`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`);
 
-                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+                    currentDate = new Date(currentYear, currentMonth + 1, 1);
                 }
 
                 return tableNames;
             }
         } else {
             const currentDate = new Date();
-            const currentYear = currentDate.getFullYear();
-            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getUTCFullYear();
+            const currentMonth = currentDate.getUTCMonth();
+            const currentDay = currentDate.getUTCDate();
 
             let lastMonth, lastYear;
 
@@ -109,8 +109,12 @@ const DetaliedReports = {
                 }
                 return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
 
-            } else if (period === 'today' || period === 'yesterday' || period === 'lastweek') {
+            } else if (period === 'today') {
                 return [`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`];
+            } else if ((period === 'yesterday' && currentDay) || (period === 'lastweek' && currentDay)) {
+                lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
             } else if (period === 'thismonth') {
                 return [`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`];
             } else {
@@ -118,6 +122,7 @@ const DetaliedReports = {
             }
         }
     },
+
 
 
 
@@ -131,25 +136,25 @@ const DetaliedReports = {
         displayBy = displayBy.toLowerCase();
 
         if (period === 'today') {
-            dateStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0, 0, 0).getTime() / 1000;
+            dateStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0)).getTime() / 1000;
             dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else if (period === 'yesterday') {
-            const yesterday = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 0, 0, 0);
+            const yesterday = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
             dateStart = Math.floor(yesterday.getTime() / 1000);
-            dateEnd = Math.floor(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59).getTime() / 1000);
+            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
         } else if (period === 'lastweek') {
-            const lastWeekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 7, 0, 0, 0);
+            const lastWeekStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 7, 0, 0, 0));
             dateStart = Math.floor(lastWeekStart.getTime() / 1000);
-            dateEnd = Math.floor(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1, 23, 59, 59).getTime() / 1000);
+            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
         } else if (period === 'lastmonth') {
-            const lastMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0);
+            const lastMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1, 0, 0, 0));
             dateStart = Math.floor(lastMonthStart.getTime() / 1000);
 
-            const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
             const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
             dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
         } else if (period === 'thismonth') {
-            const thisMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
             dateStart = Math.floor(thisMonthStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else {
@@ -170,7 +175,7 @@ const DetaliedReports = {
             ]);
         });
 
-        // console.log('query:', query);
+        console.log('query:', query);
 
         const connection = db.createConnection();
 
@@ -244,16 +249,18 @@ const DetaliedReports = {
         type = type.toLowerCase();
 
         let query = `
-                SELECT DISTINCT
-        cusl.size AS size
+        SELECT 
+            s.size AS size
         FROM
-        brave_new.cache_uniq_sizesdsp_list cusl
-                LEFT JOIN
-        brave_new.dsp_points dp ON cusl.dsp_id = dp.id
-                LEFT JOIN
-        brave_new.partners p ON dp.partner_id = p.id
-        WHERE
-        p.id = 313 `
+            brave_source_statistic.\`08-2023\` AS s
+        LEFT JOIN 
+            ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
+        LEFT JOIN 
+            ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
+        WHERE 
+            p.id = ?
+        GROUP BY
+            s.size`;
 
         const connection = db.createConnection();
 
