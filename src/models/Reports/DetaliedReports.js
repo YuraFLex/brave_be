@@ -123,10 +123,6 @@ const DetaliedReports = {
         }
     },
 
-
-
-
-
     fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy) {
         type = type.toLowerCase();
         let query;
@@ -175,7 +171,7 @@ const DetaliedReports = {
             ]);
         });
 
-        console.log('query:', query);
+        // console.log('query:', query);
 
         const connection = db.createConnection();
 
@@ -249,18 +245,18 @@ const DetaliedReports = {
         type = type.toLowerCase();
 
         let query = `
-        SELECT 
-            s.size AS size
-        FROM
-            brave_source_statistic.\`08-2023\` AS s
-        LEFT JOIN 
-            ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
-        LEFT JOIN 
-            ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
-        WHERE 
-            p.id = ?
-        GROUP BY
-            s.size`;
+            SELECT 
+                s.size AS size
+            FROM
+                brave_source_statistic.\`08-2023\` AS s
+            LEFT JOIN 
+                ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
+            LEFT JOIN 
+                ${type === 'ssp' ? 'brave_new.partners p ON sp.partner_id = p.id' : 'brave_new.partners p ON dp.partner_id = p.id'}
+            WHERE 
+                p.id = ?
+            GROUP BY
+                s.size`;
 
         const connection = db.createConnection();
 
