@@ -96,7 +96,6 @@ const DetaliedReports = {
             const currentDate = new Date();
             const currentYear = currentDate.getUTCFullYear();
             const currentMonth = currentDate.getUTCMonth();
-            const currentDay = currentDate.getUTCDate();
 
             let lastMonth, lastYear;
 
@@ -109,9 +108,9 @@ const DetaliedReports = {
                 }
                 return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
 
-            } else if (period === 'today') {
+            } else if (period === 'today' || period === 'yesterday') {
                 return [`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`];
-            } else if ((period === 'yesterday' && currentDay) || (period === 'lastweek' && currentDay)) {
+            } else if (period === 'lastweek') {
                 lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
                 lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
                 return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
@@ -122,6 +121,7 @@ const DetaliedReports = {
             }
         }
     },
+
 
     fetchDetReports: async function (partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy) {
         type = type.toLowerCase();
