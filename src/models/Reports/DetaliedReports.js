@@ -108,12 +108,12 @@ const DetaliedReports = {
                 }
                 return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
 
-            } else if (period === 'today' || period === 'yesterday') {
+            } else if (period === 'today' || period === 'yesterday' || period === 'lastweek') {
                 return [`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`];
-            } else if (period === 'lastweek') {
-                lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-                lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-                return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
+                // } else if (period === 'lastweek') {
+                //     lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                //     lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                //     return [`${(lastMonth + 1).toString().padStart(2, '0')}-${lastYear}`];
             } else if (period === 'thismonth') {
                 return [`${(currentMonth + 1).toString().padStart(2, '0')}-${currentYear}`];
             } else {
