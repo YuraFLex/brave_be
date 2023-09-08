@@ -203,7 +203,6 @@ const DetaliedReports = {
 
         const connection = db.createConnection();
 
-
         try {
             const queryAsync = promisify(connection.query).bind(connection);
             const result = await queryAsync(query, params);
@@ -229,7 +228,6 @@ const DetaliedReports = {
                         time_interval: row.time_interval
                     };
                 });
-
 
                 const detaliedReportsDto = {
                     spend: resultData.map((data) => data.spend),

@@ -6,7 +6,6 @@ class ChangePasswordController {
 
         const { oldPassword, newPassword, confirmPassword, userId } = changePwdData;
 
-        // Передача данных в сервис
         const changePasswordService = new ChangePasswordService();
         const result = await changePasswordService.changePassword(
             userId,
@@ -15,7 +14,6 @@ class ChangePasswordController {
             confirmPassword
         );
 
-        // Дополнительная обработка и отправка ответа клиенту
         if (result.success) {
             res.status(200).json({ success: true, message: 'Password successfully changed' });
         } else if (result.error === 'incorrect_password') {

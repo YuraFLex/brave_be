@@ -1,113 +1,92 @@
 const db = require("../../config/db");
 const { promisify } = require("util");
-const { roundValue } = require('../../utils/index')
+const { roundValue } = require('../../utils/index');
 
 const Statistics = {
 
-  getStatistics: async function (partner_id, type, startDate, endDate, endPoint, period) {
+  generateQuery: function (type, endPoint) {
+
+    let query = `
+      SELECT
+          p.id AS partner_id,
+          SUM(s.impressions_${type}_sum) AS spend,
+          SUM(s.impressions_cnt) AS impressions_cnt,
+          SUM(s.bids_${type}_cnt) AS responses,
+          SUM(s.timeouts_cnt)/(SUM(requests_cnt)/100) AS time_outs,
+          SUM(s.impressions_cnt)/SUM(s.bids_${type}_cnt)*100 AS win_rate
+      FROM
+          brave_new.partners p
+      LEFT JOIN
+          ${type === 'ssp' ? 'brave_new.ssp_points sp ON p.id = sp.partner_id' : 'brave_new.dsp_points dp ON p.id = dp.partner_id'}
+      LEFT JOIN
+          ${type === 'ssp' ? 'brave_new.statistic s ON sp.id = s.ssp' : 'brave_new.statistic s ON dp.id = s.dsp'}
+      WHERE
+          p.id = ?
+          AND s.unixtime >= ?
+          AND s.unixtime < ?
+          ${endPoint && endPoint !== 'all' ? `AND s.${type} = '${endPoint}'` : ''}
+      GROUP BY
+          p.id`;
+
+    return query;
+  },
+
+  fetchStatistics: async function (partner_id, type, startDate, endDate, endPoint, period) {
     type = type.toLowerCase();
     let query;
-    let queryParams = [partner_id];
+    let dateStart, dateEnd;
 
-    query = `
-      SELECT
-        p.id AS partner_id,
-        SUM(s.impressions_${type}_sum) AS spend,
-        SUM(s.impressions_cnt) AS impressions_cnt,
-        SUM(s.bids_${type}_cnt) AS responses,
-        SUM(s.timeouts_cnt)/(SUM(requests_cnt)/100) AS time_outs,
-        SUM(s.impressions_cnt)/SUM(s.bids_${type}_cnt)*100 AS win_rate
-      FROM
-        brave_new.partners p
-      LEFT JOIN
-        ${type === 'ssp' ? 'brave_new.ssp_points sp ON p.id = sp.partner_id' : 'brave_new.dsp_points dp ON p.id = dp.partner_id'}
-      LEFT JOIN
-        ${type === 'ssp' ? 'brave_new.statistic s ON sp.id = s.ssp' : 'brave_new.statistic s ON dp.id = s.dsp'}`;
+    const currentDate = new Date();
 
-    query += `
-      WHERE
-        p.id = ?`;
-
-    if (endDate && startDate) {
-      query += `
-        AND
-          (s.unixtime BETWEEN UNIX_TIMESTAMP(?) AND UNIX_TIMESTAMP(?))`;
-      queryParams.push(startDate);
-      queryParams.push(endDate);
-    } else if (period) {
-      const currentDate = new Date();
-      let startOfDay, endOfDay;
-
-      switch (period) {
-        case 'today':
-          startOfDay = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0));
-          endOfDay = currentDate;
-          break;
-        case 'yesterday':
-          const yesterdayUTC = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
-          startOfDay = yesterdayUTC;
-          endOfDay = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59));
-          break;
-        case 'lastweek':
-          const lastWeekStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 6, 23, 59, 59));
-          startOfDay = lastWeekStart;
-          endOfDay = currentDate;
-          break;
-        case 'lastmonth':
-          const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1, 0, 0, 0));
-          const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
-          startOfDay = new Date(Date.UTC(lastMonthEnd.getUTCFullYear(), lastMonthEnd.getUTCMonth(), 1, 0, 0, 0));
-          endOfDay = lastMonthEnd;
-          break;
-        case 'thismonth':
-          startOfDay = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
-          endOfDay = currentDate;
-          break;
-        default:
-          throw new Error("Invalid period");
+    if (period === 'custom') {
+      if (typeof startDate === 'string') {
+        startDate = new Date(startDate);
       }
+      if (typeof endDate === 'string') {
+        endDate = new Date(endDate);
+      }
+      dateStart = Math.floor(startDate.getTime() / 1000);
+      dateEnd = Math.floor(endDate.getTime() / 1000);
+    } else if (period === 'today') {
+      dateStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0)).getTime() / 1000;
+      dateEnd = Math.floor(currentDate.getTime() / 1000);
+    } else if (period === 'yesterday') {
+      const yesterday = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
+      dateStart = Math.floor(yesterday.getTime() / 1000);
+      dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
+    } else if (period === 'lastweek') {
+      const lastWeekStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 7, 0, 0, 0));
+      dateStart = Math.floor(lastWeekStart.getTime() / 1000);
+      dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
+    } else if (period === 'lastmonth') {
+      const lastMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1, 0, 0, 0));
+      dateStart = Math.floor(lastMonthStart.getTime() / 1000);
 
-
-
-      query += `
-        AND
-          (s.unixtime BETWEEN UNIX_TIMESTAMP(?) AND UNIX_TIMESTAMP(?))`;
-      queryParams.push(startOfDay);
-      queryParams.push(endOfDay);
+      const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
+      const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
+      dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
+    } else if (period === 'thismonth') {
+      const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
+      dateStart = Math.floor(thisMonthStart.getTime() / 1000);
+      dateEnd = Math.floor(currentDate.getTime() / 1000);
     } else {
-      const currentDate = new Date();
-      const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0, 0, 0);
-      const endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 23, 59, 59);
-
-      query += `
-        AND
-          (s.unixtime BETWEEN UNIX_TIMESTAMP(?) AND UNIX_TIMESTAMP(?))`;
-      queryParams.push(startOfDay);
-      queryParams.push(endOfDay);
+      dateStart = Math.floor(new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate(), 0, 0, 0)).getTime() / 1000);
+      dateEnd = Math.floor(new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate(), 23, 59, 59, 999)).getTime() / 1000);
     }
 
-    if (endPoint === 'all') {
-      query += `
-        GROUP BY
-          p.id`;
-    } else if (endPoint) {
-      query += `
-        AND
-          (s.${type} = ? OR s.${type} IS NULL)`;
-      queryParams.push(endPoint);
-    }
+    query = this.generateQuery(type, endPoint);
+
+    let params = [partner_id, dateStart, dateEnd]
 
     const connection = db.createConnection();
 
     try {
-      const queryAsync = promisify(connection.query).bind(connection);
+      const queryAsync = promisify(connection.query).bind(connection)
 
-      const results = await queryAsync(query, queryParams);
+      const result = await queryAsync(query, params)
 
-
-
-      if (results.length > 0) {
-        const statistics = results[0];
+      if (result.length > 0) {
+        const statistics = result[0];
         statistics.spend = roundValue(statistics.spend);
         statistics.impressions_cnt = roundValue(statistics.impressions_cnt);
         statistics.responses = roundValue(statistics.responses);
@@ -115,13 +94,12 @@ const Statistics = {
         statistics.win_rate = roundValue(statistics.win_rate);
       }
 
-      // console.log('Result:', results);
+      return result[0];
 
-      return results[0];
     } catch (error) {
       throw new Error(`Error retrieving statistics: ${error.message}`);
     } finally {
-      connection.end();
+      connection.end()
     }
   },
 };

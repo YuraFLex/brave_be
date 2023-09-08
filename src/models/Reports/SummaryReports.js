@@ -4,7 +4,7 @@ const { roundValue } = require('../../utils')
 
 const SummaryReports = {
 
-    generateQuery: function (displayBy, type) {
+    generateQuery: function (displayBy, type, endPointUrl) {
         let query = `
             SELECT
                 p.id AS partner_id,
@@ -39,7 +39,10 @@ const SummaryReports = {
         WHERE
             p.id = ?
             AND s.unixtime >= ?
-            AND s.unixtime < ?`;
+            AND s.unixtime < ?
+            ${endPointUrl && endPointUrl !== 'all' ? `AND s.${type} = '${endPointUrl}'` : ''}
+        GROUP BY
+            time_interval`;
 
         return query;
     },
@@ -48,8 +51,6 @@ const SummaryReports = {
         type = type.toLowerCase();
         let query;
         let dateStart, dateEnd;
-
-        console.log('period:', period);
 
         const currentDate = new Date();
 
@@ -80,18 +81,9 @@ const SummaryReports = {
             dateEnd = Math.floor(new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate(), 23, 59, 59, 999)).getTime() / 1000);
         }
 
-        query = this.generateQuery(displayBy, type);
+        query = this.generateQuery(displayBy, type, endPointUrl);
 
         let params = [partner_id, dateStart, dateEnd]
-
-        if (endPointUrl && endPointUrl !== 'all') {
-            query += ` AND s.${type} = ?`;
-            params.push(endPointUrl);
-        }
-
-        query += `
-            GROUP BY
-                time_interval`;
 
         // console.log('query:', query);
         const connection = db.createConnection();
@@ -109,8 +101,6 @@ const SummaryReports = {
                 let totalResponses = 0;
                 let totalSpend = 0;
                 let totalWinRate = 0;
-
-
 
                 const resultData = result.map((row) => {
 

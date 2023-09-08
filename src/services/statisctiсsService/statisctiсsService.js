@@ -3,9 +3,9 @@ const StatisticsDto = require('../../dtos/showStatisctiksDto/showStatisticsDto')
 const Statistics = require('../../models/Statisitcs/Statisitcs');
 
 class StatisticsService {
-    async getFilteredStatistics(partnerId, type, period, endDate, endPoint, startDate) {
+    async getFilteredStatistics(partner_id, type, period, endDate, endPoint, startDate) {
         try {
-            const result = await Statistics.getStatistics(partnerId, type, startDate, endDate, endPoint, period);
+            const result = await Statistics.fetchStatistics(partner_id, type, startDate, endDate, endPoint, period);
 
             const statResult = new StatisticsDto(result);
 
