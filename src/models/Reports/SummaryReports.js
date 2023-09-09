@@ -85,7 +85,6 @@ const SummaryReports = {
 
         let params = [partner_id, dateStart, dateEnd]
 
-        // console.log('query:', query);
         const connection = db.createConnection();
 
         try {

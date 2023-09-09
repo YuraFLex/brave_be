@@ -11,7 +11,6 @@ class SummaryReportsService {
             const reportResult = new SummaryReportsDto(result);
             reportResult.period = period;
             reportResult.displayBy = displayBy;
-            console.log(reportResult);
 
             return reportResult;
         } catch (e) {

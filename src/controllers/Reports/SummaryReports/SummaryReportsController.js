@@ -4,6 +4,8 @@ class SummaryReportsController {
     async getSummaryReports(req, res, next) {
         const data = req.query;
 
+        console.log('Data:', data);
+
         try {
             const summaryData = await SummaryReportsService.getSummary(data);
             res.json(summaryData);
