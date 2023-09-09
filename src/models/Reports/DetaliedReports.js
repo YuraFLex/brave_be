@@ -19,9 +19,7 @@ const DetaliedReports = {
 
         const groupByClauses = groupBy.map(group => {
             if (group === 'default') {
-                return 'p.id'
-            } else if (group === 'company') {
-                return `${type === 'dsp' ? 'dp.id' : 'sp.id'}`
+                return 'time_interval'
             } else if (group === 'appBundle') {
                 return 'bundle_domain';
             } else if (group === 'appName') {
@@ -33,16 +31,27 @@ const DetaliedReports = {
             }
         });
 
+        const selectClauses = groupBy.map(group => {
+            if (group === 'default') {
+                return ''
+            } else if (group === 'appBundle') {
+                return `IF(s.store != 'isweb', s.bundle_domain, '') AS bundle_domain,
+                IF(s.store = 'isweb', s.bundle_domain, '') AS site_domain,`;
+            } else if (group === 'appName') {
+                return 's.source_name AS app_name,';
+            } else if (group === 'size') {
+                return 's.size AS size,';
+            } else if (group === 'trafficType') {
+                return 's.type AS traffic_type,';
+            }
+        });
+
         const subQueries = tableNames.map(tableName => `
             SELECT
                 p.id AS partner_id,
                 DATE_FORMAT(FROM_UNIXTIME(s.unixtime), ${displayByFormat}) AS time_interval,
-                IF(s.store != 'isweb', s.bundle_domain, '') AS bundle_domain,
-                IF(s.store = 'isweb', s.bundle_domain, '') AS site_domain, 
-                s.source_name AS app_name,
-                s.size AS size,
-                s.type AS traffic_type,
-                SUM(s.impressions_cnt) AS impressions,
+                ${selectClauses.join(' ')}
+                SUM(s.impressions_cnt) AS impressions,               
                 SUM(s.impressions_${type}_sum) AS spend 
             FROM 
                 brave_source_statistic.\`${tableName}\` AS s

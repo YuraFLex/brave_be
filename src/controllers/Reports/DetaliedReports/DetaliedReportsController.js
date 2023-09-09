@@ -3,7 +3,7 @@ const DetaliedReportsService = require('../../../services/Reports/DetaliedReport
 class DetaliedReportsController {
     async getDetaliedReports(req, res, next) {
         const data = req.query;
-        console.log('DATA:', data);
+        console.log('Detalied Reports Data:', data);
 
         try {
             const detaliedData = await DetaliedReportsService.getDetalied(data)
