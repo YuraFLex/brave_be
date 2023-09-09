@@ -38,16 +38,7 @@ const Statistics = {
 
     const currentDate = new Date();
 
-    if (period === 'custom') {
-      if (typeof startDate === 'string') {
-        startDate = new Date(startDate);
-      }
-      if (typeof endDate === 'string') {
-        endDate = new Date(endDate);
-      }
-      dateStart = Math.floor(startDate.getTime() / 1000);
-      dateEnd = Math.floor(endDate.getTime() / 1000);
-    } else if (period === 'today') {
+    if (period === 'today') {
       dateStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0)).getTime() / 1000;
       dateEnd = Math.floor(currentDate.getTime() / 1000);
     } else if (period === 'yesterday') {
@@ -70,8 +61,8 @@ const Statistics = {
       dateStart = Math.floor(thisMonthStart.getTime() / 1000);
       dateEnd = Math.floor(currentDate.getTime() / 1000);
     } else {
-      dateStart = Math.floor(new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate(), 0, 0, 0)).getTime() / 1000);
-      dateEnd = Math.floor(new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate(), 23, 59, 59, 999)).getTime() / 1000);
+      dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
+      dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
     }
 
     query = this.generateQuery(type, endPoint);

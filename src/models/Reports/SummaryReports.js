@@ -77,8 +77,8 @@ const SummaryReports = {
             dateStart = Math.floor(thisMonthStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
         } else {
-            dateStart = Math.floor(new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate(), 0, 0, 0)).getTime() / 1000);
-            dateEnd = Math.floor(new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate(), 23, 59, 59, 999)).getTime() / 1000);
+            dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
+            dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
         }
 
         query = this.generateQuery(displayBy, type, endPointUrl);
