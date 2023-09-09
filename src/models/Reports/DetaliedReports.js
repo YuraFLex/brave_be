@@ -18,8 +18,8 @@ const DetaliedReports = {
         }
 
         const groupByClauses = groupBy.map(group => {
-            if (group === 'timeInterval') {
-                return 'time_interval'
+            if (group === 'default') {
+                return 'p.id'
             } else if (group === 'company') {
                 return `${type === 'dsp' ? 'dp.id' : 'sp.id'}`
             } else if (group === 'appBundle') {
