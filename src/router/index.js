@@ -6,6 +6,7 @@ const EndPointController = require('../controllers/EndPointController/EndPointCo
 const SummaryReportsController = require('../controllers/Reports/SummaryReports/SummaryReportsController')
 const DetaliedReportsController = require('../controllers/Reports/DetaliedReports/DetaliedReportsController');
 const DownloadCsvController = require("../controllers/Reports/DownloadCsvController");
+const ChartController = require('../controllers/ChartController/ChartController')
 
 const router = new Router();
 
@@ -17,6 +18,7 @@ router.get("/reports/summary", SummaryReportsController.getSummaryReports);
 router.get("/reports/detalied", DetaliedReportsController.getDetaliedReports);
 router.post("/reports/download", DownloadCsvController.getCsvFile);
 router.get("/reports/detalied/:id/:type", DetaliedReportsController.getSizesList);
+router.get('/statistics/chart_data', ChartController.getData)
 
 
 module.exports = router;

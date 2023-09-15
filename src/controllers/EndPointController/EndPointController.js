@@ -7,7 +7,6 @@ class EndPointController {
         if (type === "DSP") {
             try {
                 const endPointDtos = await EndPointService.getEndPointData(id);
-                console.log('endPointDtos IN CONTROLLER:', endPointDtos);;
                 res.json(endPointDtos);
             } catch (error) {
                 next(error);
