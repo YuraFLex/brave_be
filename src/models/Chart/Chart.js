@@ -1,15 +1,22 @@
 const db = require('../../config/db');
 const { promisify } = require('util');
-const { roundValue } = require('../../utils')
 
 const Chart = {
 
-    generateQuery: function (type, endPoint) {
+    generateQuery: function (type, endPoint, period) {
+
+        let timeFormat;
+
+        if (period === 'today' || period === 'yesterday') {
+            timeFormat = `'%H:00'`
+        } else {
+            timeFormat = `'%Y/%m/%d'`
+        }
 
         let query = `
           SELECT
               p.id AS partner_id,
-              DATE_FORMAT(FROM_UNIXTIME(s.unixtime), '%H:00') AS time_interval,
+              DATE_FORMAT(FROM_UNIXTIME(s.unixtime), ${timeFormat}) AS time_interval,
               SUM(s.impressions_${type}_sum) AS spend,
               SUM(s.impressions_cnt) AS impressions_cnt,
               SUM(s.bids_${type}_cnt) AS responses,
@@ -33,52 +40,71 @@ const Chart = {
         return query;
     },
 
-    fetchChartData: async function (partnerId, type, periods, endPoint) {
+    fetchChartData: async function (partnerId, type, period, endPoint, startDate, endDate) {
         type = type.toLowerCase();
+        let resultData = {};
+        let query;
+        let dateStart, dateEnd;
+
         const currentDate = new Date();
-        const resultData = {};
 
-        for (const period of periods) {
-            let query;
-            let dateStart, dateEnd;
+        if (period === 'today') {
+            dateStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0)).getTime() / 1000;
+            dateEnd = Math.floor(currentDate.getTime() / 1000);
+        } else if (period === 'yesterday') {
+            const yesterday = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
+            dateStart = Math.floor(yesterday.getTime() / 1000);
+            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
+        } else if (period === 'lastweek') {
+            const lastWeekStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 7, 0, 0, 0));
+            dateStart = Math.floor(lastWeekStart.getTime() / 1000);
+            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
+        } else if (period === 'lastmonth') {
+            const lastMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1, 0, 0, 0));
+            dateStart = Math.floor(lastMonthStart.getTime() / 1000);
 
-            if (period === 'today') {
-                dateStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0)).getTime() / 1000;
-                dateEnd = Math.floor(currentDate.getTime() / 1000);
-            } else if (period === 'yesterday') {
-                const yesterday = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
-                dateStart = Math.floor(yesterday.getTime() / 1000);
-                dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
-            }
-
-            query = this.generateQuery(type, endPoint);
-
-            let params = [partnerId, dateStart, dateEnd];
-
-            const connection = db.createConnection();
-
-            try {
-                const queryAsync = promisify(connection.query).bind(connection);
-
-                const result = await queryAsync(query, params);
-
-                resultData[period] = {
-                    spending: result.map(row => row.spend),
-                    impress: result.map(row => row.impressions_cnt),
-                    resp: result.map(row => row.responses),
-                    t_outs: result.map(row => row.time_outs),
-                    w_rate: result.map(row => row.win_rate),
-                    t_interval: result.map(row => row.time_interval),
-                };
-            } catch (error) {
-                throw new Error(`Error retrieving statistics: ${error.message}`);
-            } finally {
-                connection.end();
-            }
+            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
+            const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
+            dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
+        } else if (period === 'thismonth') {
+            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
+            dateStart = Math.floor(thisMonthStart.getTime() / 1000);
+            dateEnd = Math.floor(currentDate.getTime() / 1000);
+        } else {
+            dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
+            dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
         }
 
-        return resultData;
-    },
+        query = this.generateQuery(type, endPoint, period);
+
+        let params = [partnerId, dateStart, dateEnd];
+
+        const connection = db.createConnection();
+
+        try {
+            const queryAsync = promisify(connection.query).bind(connection);
+
+            const result = await queryAsync(query, params);
+
+            resultData = {
+                spending: result.map(row => row.spend),
+                impress: result.map(row => row.impressions_cnt),
+                resp: result.map(row => row.responses),
+                t_outs: result.map(row => row.time_outs),
+                w_rate: result.map(row => row.win_rate),
+                t_interval: result.map(row => row.time_interval),
+            };
+            // console.log('resultData:', resultData);
+
+            return resultData;
+        } catch (error) {
+            throw new Error(`Error retrieving statistics: ${error.message}`);
+        } finally {
+            connection.end();
+        }
+    }
+
+
 
 }
 

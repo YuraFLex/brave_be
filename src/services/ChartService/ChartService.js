@@ -5,9 +5,9 @@ class ChartService {
     async getChartData(data) {
 
         try {
-            const { partnerId, type, period, endPoint } = data;
+            const { partnerId, type, period, endPoint, startDate, endDate } = data;
 
-            const result = await Chart.fetchChartData(partnerId, type, period, endPoint)
+            const result = await Chart.fetchChartData(partnerId, type, period, endPoint, startDate, endDate)
 
             const chartResult = new ChartDto(result)
 
