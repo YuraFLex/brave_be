@@ -7,6 +7,7 @@ const Chart = {
 
         let timeFormat;
 
+
         if (period === 'today' || period === 'yesterday') {
             timeFormat = `'%H:00'`
         } else {
@@ -70,9 +71,11 @@ const Chart = {
             const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
             dateStart = Math.floor(thisMonthStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
-        } else {
+        } else if (period === 'custom') {
             dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
             dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
+        } else if (period === 'custom' && (!startDate || !endDate)) {
+            return { error: 'Custom period requires startDate and endDate' };
         }
 
         query = this.generateQuery(type, endPoint, period);

@@ -9,12 +9,27 @@ class DetaliedReportsService {
         try {
             const result = await DetaliedReports.fetchDetReports(partner_id, type, period, startDate, endDate, displayBy, endPointUrl, size, trafficType, groupBy);
 
-            const reportResult = new DetaliedReportsDto(result)
-            reportResult.period = period;
-            reportResult.displayBy = displayBy;
-            reportResult.groupBy = groupBy;
+            if (result) {
+                const reportResult = new DetaliedReportsDto(result)
+                reportResult.period = period;
+                reportResult.displayBy = displayBy;
+                reportResult.groupBy = groupBy;
 
-            return reportResult;
+                return {
+                    success: true,
+                    message: 'Your Detalied Report is Ready',
+                    detaliedData: reportResult,
+                }
+            } else {
+                return {
+                    success: false,
+                    message: 'Error when receiving a detalied report'
+                }
+            }
+
+
+
+
         } catch (error) {
             console.log(error);
         }

@@ -2,12 +2,18 @@ const DetaliedReportsService = require('../../../services/Reports/DetaliedReport
 
 class DetaliedReportsController {
     async getDetaliedReports(req, res, next) {
-        const data = req.query;
-        console.log('Detalied Reports Data:', data);
 
         try {
+            const data = req.query;
             const detaliedData = await DetaliedReportsService.getDetalied(data)
-            res.json(detaliedData)
+
+            if (detaliedData.success) {
+                return res.status(200).json(detaliedData)
+            } else {
+                return res.status(401).json(detaliedData)
+            }
+
+
         } catch (error) {
             return next(error)
         }

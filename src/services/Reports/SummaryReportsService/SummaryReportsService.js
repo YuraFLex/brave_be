@@ -8,14 +8,26 @@ class SummaryReportsService {
         try {
             const result = await SummaryReports.fetchSumReports(partner_id, type, displayBy, endPointUrl, period, startDate, endDate,);
 
-            const reportResult = new SummaryReportsDto(result);
-            reportResult.period = period;
-            reportResult.displayBy = displayBy;
+            if (result) {
+                const reportResult = new SummaryReportsDto(result);
+                reportResult.period = period;
+                reportResult.displayBy = displayBy;
 
-            return reportResult;
-        } catch (e) {
-            console.log(e);
-            throw e;
+                return {
+                    success: true,
+                    message: 'Your Summary Report is Ready',
+                    summaryData: reportResult,
+                }
+            } else {
+                return {
+                    success: false,
+                    message: 'Error when receiving a summary report'
+                }
+            }
+
+        } catch (error) {
+            console.log(error);
+            throw error;
         }
     }
 }

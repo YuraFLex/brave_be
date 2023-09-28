@@ -2,15 +2,21 @@ const SummaryReportsService = require('../../../services/Reports/SummaryReportsS
 
 class SummaryReportsController {
     async getSummaryReports(req, res, next) {
-        const data = req.query;
-
-        console.log('Summary Reports Data:', data);
 
         try {
+            const data = req.query;
             const summaryData = await SummaryReportsService.getSummary(data);
-            res.json(summaryData);
-        } catch (e) {
-            return next(e);
+
+
+            if (summaryData.success) {
+                return res.status(200).json(summaryData)
+
+            } else {
+                return res.status(401).json(summaryData)
+            }
+
+        } catch (error) {
+            return next(error);
         }
     }
 }

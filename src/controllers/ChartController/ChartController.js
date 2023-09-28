@@ -3,12 +3,19 @@ const ChartService = require('../../services/ChartService/ChartService')
 class ChartController {
 
     async getData(req, res, next) {
-        const data = req.query;
-        // console.log('Cahrt data:', data);
 
         try {
+            const data = req.query;
+
+            console.log('data:', data);
             const chartData = await ChartService.getChartData(data)
-            res.json(chartData)
+
+            if (chartData.success) {
+                return res.status(200).json(chartData)
+
+            } else {
+                return res.status(401).json(chartData)
+            }
 
         } catch (error) {
             return next(error)
