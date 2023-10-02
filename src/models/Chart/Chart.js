@@ -1,18 +1,21 @@
 const db = require('../../config/db');
 const { promisify } = require('util');
+const { getDateRange } = require('../../utils');
 
 const Chart = {
 
-    generateQuery: function (type, endPoint, period) {
+    generateQuery: function (type, endPoint, period, startDate, endDate) {
+        const currentDate = new Date();
+        const currentMonth = currentDate.getUTCMonth();
+        const thisMonth = new Date(currentDate);
+        thisMonth.setUTCMonth(currentMonth + 1);
 
-        let timeFormat;
+        const isFirstDayOfMonth = thisMonth.getUTCDate() === 1;
 
-
-        if (period === 'today' || period === 'yesterday') {
-            timeFormat = `'%H:00'`
-        } else {
-            timeFormat = `'%Y/%m/%d'`
-        }
+        const timeFormat =
+            period === 'today' || period === 'yesterday' || (period === 'thismonth' && isFirstDayOfMonth) || (period === 'custom' && startDate === endDate)
+                ? `'%H:00'`
+                : `'%Y/%m/%d'`;
 
         let query = `
           SELECT
@@ -45,40 +48,9 @@ const Chart = {
         type = type.toLowerCase();
         let resultData = {};
         let query;
-        let dateStart, dateEnd;
+        const { dateStart, dateEnd } = getDateRange(period, startDate, endDate);
 
-        const currentDate = new Date();
-
-        if (period === 'today') {
-            dateStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0)).getTime() / 1000;
-            dateEnd = Math.floor(currentDate.getTime() / 1000);
-        } else if (period === 'yesterday') {
-            const yesterday = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
-            dateStart = Math.floor(yesterday.getTime() / 1000);
-            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
-        } else if (period === 'lastweek') {
-            const lastWeekStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 7, 0, 0, 0));
-            dateStart = Math.floor(lastWeekStart.getTime() / 1000);
-            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
-        } else if (period === 'lastmonth') {
-            const lastMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1, 0, 0, 0));
-            dateStart = Math.floor(lastMonthStart.getTime() / 1000);
-
-            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
-            const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
-            dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
-        } else if (period === 'thismonth') {
-            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
-            dateStart = Math.floor(thisMonthStart.getTime() / 1000);
-            dateEnd = Math.floor(currentDate.getTime() / 1000);
-        } else if (period === 'custom') {
-            dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
-            dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
-        } else if (period === 'custom' && (!startDate || !endDate)) {
-            return { error: 'Custom period requires startDate and endDate' };
-        }
-
-        query = this.generateQuery(type, endPoint, period);
+        query = this.generateQuery(type, endPoint, period, startDate, endDate);
 
         let params = [partnerId, dateStart, dateEnd];
 

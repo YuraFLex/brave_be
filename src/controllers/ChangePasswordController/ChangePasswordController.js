@@ -4,24 +4,20 @@ class ChangePasswordController {
     async changePassword(req, res, next) {
         const changePwdData = req.body;
 
-        const { oldPassword, newPassword, confirmPassword, userId } = changePwdData;
+        const { oldPassword, newPassword, confirmPassword, user_id } = changePwdData;
 
         const changePasswordService = new ChangePasswordService();
         const result = await changePasswordService.changePassword(
-            userId,
+            user_id,
             oldPassword,
             newPassword,
             confirmPassword
         );
-
+        console.log('result:', result);
         if (result.success) {
             res.status(200).json({ success: true, message: 'Password successfully changed' });
-        } else if (result.error === 'incorrect_password') {
-            res.status(400).json({ success: false, message: 'Incorrect old password' });
-        } else if (result.error === 'password_mismatch') {
-            res.status(400).json({ success: false, message: 'New password and confirm password must match' });
         } else {
-            res.status(500).json({ success: false, message: 'An error occurred while changing the password' });
+            res.status(400).json({ success: false, message: 'Incorrect Password' });
         }
     }
 }

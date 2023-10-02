@@ -1,6 +1,6 @@
 const db = require('../../config/db');
 const { promisify } = require('util');
-const { roundValue } = require('../../utils')
+const { roundValue, getDateRange } = require('../../utils')
 
 const SummaryReports = {
 
@@ -50,36 +50,7 @@ const SummaryReports = {
     fetchSumReports: async function (partner_id, type, displayBy, endPointUrl, period, startDate, endDate) {
         type = type.toLowerCase();
         let query;
-        let dateStart, dateEnd;
-
-        const currentDate = new Date();
-
-        if (period === 'today') {
-            dateStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate(), 0, 0, 0)).getTime() / 1000;
-            dateEnd = Math.floor(currentDate.getTime() / 1000);
-        } else if (period === 'yesterday') {
-            const yesterday = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 0, 0, 0));
-            dateStart = Math.floor(yesterday.getTime() / 1000);
-            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
-        } else if (period === 'lastweek') {
-            const lastWeekStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 7, 0, 0, 0));
-            dateStart = Math.floor(lastWeekStart.getTime() / 1000);
-            dateEnd = Math.floor(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() - 1, 23, 59, 59)).getTime() / 1000);
-        } else if (period === 'lastmonth') {
-            const lastMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1, 0, 0, 0));
-            dateStart = Math.floor(lastMonthStart.getTime() / 1000);
-
-            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
-            const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
-            dateEnd = Math.floor(lastMonthEnd.getTime() / 1000);
-        } else if (period === 'thismonth') {
-            const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
-            dateStart = Math.floor(thisMonthStart.getTime() / 1000);
-            dateEnd = Math.floor(currentDate.getTime() / 1000);
-        } else {
-            dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
-            dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
-        }
+        const { dateStart, dateEnd } = getDateRange(period, startDate, endDate);
 
         query = this.generateQuery(displayBy, type, endPointUrl);
 
@@ -123,8 +94,6 @@ const SummaryReports = {
                     }
                 });
 
-                // console.log('Результат в модели:', resultData);
-
                 const summaryReportsDto = {
                     timeouts: resultData.map((data) => data.timeouts),
                     time_outs: resultData.map((data) => data.time_outs),
@@ -165,10 +134,6 @@ const SummaryReports = {
             connection.end();
         }
     },
-
 };
 
 module.exports = SummaryReports;
-
-
-

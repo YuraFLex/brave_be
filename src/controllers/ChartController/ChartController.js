@@ -7,7 +7,7 @@ class ChartController {
         try {
             const data = req.query;
 
-            console.log('data:', data);
+            // console.log('data:', data);
             const chartData = await ChartService.getChartData(data)
 
             if (chartData.success) {

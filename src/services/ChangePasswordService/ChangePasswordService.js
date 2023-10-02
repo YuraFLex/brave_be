@@ -1,30 +1,21 @@
 const ChangePassword = require('../../models/ChangePassword/ChangePassword');
 
 class ChangePasswordService {
-    async changePassword(userId, oldPassword, newPassword, confirmPassword) {
+    async changePassword(userId, oldPassword, newPassword) {
 
-        if (newPassword === confirmPassword) {
-            try {
-                const changePasswordModel = new ChangePassword();
-                const userData = await changePasswordModel.getUserByIdAndPassword(userId, oldPassword);
+        try {
+            const changePasswordModel = new ChangePassword();
+            const userData = await changePasswordModel.getUserByIdAndPassword(userId, oldPassword);
 
-                if (userData) {
-                    // Если найдено совпадение по userId и oldPassword, обновляем пароль в базе данных
-                    await changePasswordModel.updatePassword(userId, newPassword);
+            if (userData) {
+                await changePasswordModel.updatePassword(userId, newPassword);
 
-                    // Возвращаем успешный результат
-                    return { success: true, message: 'Password successfully changed' };
-                } else {
-                    // Обработка ошибки, если не найдено совпадение по userId и oldPassword
-                    return { success: false, error: 'incorrect_password' };
-                }
-            } catch (error) {
-                // Обработка ошибки базы данных или других ошибок
-                return { success: false, message: 'An error occurred while changing the password' };
+                return { success: true, message: 'Password successfully changed' };
+            } else {
+                return { success: false, error: 'Incorrect Password' };
             }
-        } else {
-            // Возвращаем ошибку, если newPassword и confirmPassword не совпадают
-            return { success: false, error: 'password_mismatch' };
+        } catch (error) {
+            return { success: false, message: 'An error occurred while changing the password' };
         }
     }
 }

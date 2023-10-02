@@ -8,7 +8,7 @@ const utils = {
         return value;
     },
 
-    calculateDateRange(period, startDate, endDate) {
+    getDateRange(period, startDate, endDate) {
         const currentDate = new Date();
         let dateStart, dateEnd;
 
@@ -34,13 +34,16 @@ const utils = {
             const thisMonthStart = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), 1, 0, 0, 0));
             dateStart = Math.floor(thisMonthStart.getTime() / 1000);
             dateEnd = Math.floor(currentDate.getTime() / 1000);
-        } else {
+        } else if (period === 'custom') {
             dateStart = Math.floor(new Date(startDate).setHours(0, 0, 0, 0) / 1000);
             dateEnd = Math.floor(new Date(endDate).setHours(23, 59, 59, 999) / 1000);
+        } else if (period === 'custom' && (!startDate || !endDate)) {
+            return { error: 'Custom period requires startDate and endDate' };
         }
 
         return { dateStart, dateEnd };
     }
+
 }
 
 module.exports = utils;
