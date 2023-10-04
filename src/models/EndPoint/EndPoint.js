@@ -25,9 +25,6 @@ const EndPoint = {
                 return { id: entry.id, point: newPoint, active: entry.active, prebid_pid: entry.prebid_pid };
             });
 
-            console.log('getEndPointList result:', result);
-            console.log('endPointList:', endPointList);
-
             return endPointList;
         } catch (error) {
             console.log(error);

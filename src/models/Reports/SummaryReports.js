@@ -5,22 +5,22 @@ const { roundValue, getDateRange } = require('../../utils')
 const SummaryReports = {
 
     generateQuery: function (displayBy, type, endPointUrl) {
-        let query = `
-            SELECT
-                p.id AS partner_id,
-                DATE_FORMAT(FROM_UNIXTIME(s.unixtime), `;
+        let displayByFormat;
 
         if (displayBy === 'hour') {
-            query += `'%H:00'`;
+            displayByFormat = `'%H:00'`;
         } else if (displayBy === 'day') {
-            query += `'%Y/%m/%d'`;
+            displayByFormat = `'%Y/%m/%d'`;
         } else if (displayBy === 'month') {
-            query += `'%Y/%m'`;
+            displayByFormat = `'%Y/%m'`;
         } else if (displayBy === 'year') {
-            query += `'%Y'`;
+            displayByFormat = `'%Y'`;
         }
 
-        query += `) AS time_interval,
+        let query = `
+            SELECT
+            p.id AS partner_id,
+            DATE_FORMAT(FROM_UNIXTIME(s.unixtime), ${displayByFormat}) AS time_interval,
             SUM(s.timeouts_cnt) AS timeouts,
             SUM(s.timeouts_cnt)/(SUM(requests_cnt)/100) AS time_outs,
             SUM(s.impressions_cnt) AS impressions,
