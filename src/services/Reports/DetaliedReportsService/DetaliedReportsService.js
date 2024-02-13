@@ -26,17 +26,10 @@ class DetaliedReportsService {
                     message: 'Error when receiving a detalied report'
                 }
             }
-
-
-
-
         } catch (error) {
             console.log(error);
         }
     }
-
-
-
 
     async getSizesList(partnerId, type) {
         try {

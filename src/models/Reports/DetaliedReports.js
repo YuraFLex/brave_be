@@ -283,7 +283,7 @@ const DetaliedReports = {
             SELECT 
                 s.size AS size
             FROM
-                brave_source_statistic.\`08-2023\` AS s
+                brave_source_statistic.\`01-2024\` AS s
             LEFT JOIN 
                 ${type === 'ssp' ? 'brave_new.ssp_points sp ON s.ssp = sp.id' : 'brave_new.dsp_points dp ON s.dsp = dp.id'}
             LEFT JOIN 
